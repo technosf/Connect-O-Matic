@@ -11,3 +11,6 @@ buildNumber.properties
 .mvn/wrapper/maven-wrapper.jar
 /bin/
 /test-output/
+/.classpath
+/.project
+/.settings/

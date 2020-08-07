@@ -1,5 +1,5 @@
 /*
- * Connect-O-Matic - IP network connection tester
+ * Connect-O-Matic - IP network connection tester [https://github.com/technosf/Connect-O-Matic]
  * 
  * Copyright 2020 technosf [https://github.com/technosf]
  * 
@@ -24,9 +24,11 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * CLI Argument types and flags
  * 
- * @author technosf
+ * @since 1.0.0
  * 
- * @since 0.0.1
+ * @version 1.0.0
+ * 
+ * @author technosf
  */
 public enum ArgTypeEnum
 {
@@ -67,6 +69,9 @@ public enum ArgTypeEnum
 
 
 	static
+	/*
+	 * Create a flag index
+	 */
 	{
 		FLAG_INDEX = new ConcurrentHashMap<>();
 		for ( ArgTypeEnum a : ArgTypeEnum.values() )
@@ -80,9 +85,10 @@ public enum ArgTypeEnum
 	/**
 	 * Returns the enum for the given argument flag
 	 * 
-	 * @param arg
+	 * @param argFlag
+	 *                    a flag type string
 	 * 
-	 * @return
+	 * @return enum for a flag type string
 	 */
 	static ArgTypeEnum getArgType ( String argFlag )
 	{

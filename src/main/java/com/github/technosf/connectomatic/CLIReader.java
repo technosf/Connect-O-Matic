@@ -1,5 +1,5 @@
 /*
- * Connect-O-Matic - IP network connection tester
+ * Connect-O-Matic - IP network connection tester [https://github.com/technosf/Connect-O-Matic]
  * 
  * Copyright 2020 technosf [https://github.com/technosf]
  * 
@@ -30,12 +30,14 @@ import java.util.Set;
 
 /**
  * Reads CLI arguments and generates the configuration objects
+ * <p>
+ * Derives a set of {@code InetAddress} objects that can be resolved and reached from input host arguments
  * 
- * Collates a set of {@code InetAddress} objects that can be resolved and reached from input host arguments
+ * @since 1.0.0
+ * 
+ * @version 1.0.0
  * 
  * @author technosf
- * 
- * @since 0.0.1
  */
 public class CLIReader
 {
@@ -46,7 +48,6 @@ public class CLIReader
 														+ "\n\t-p\tPort numbers, at least one required" 	
 														+ "\n\t-h\tHosts as hstnames, IPv4 or IPv6 addresses, at least one required"
 														+ "\n\t-?\tProduces this message\n\n" 	;
-
 // @formatter:on
 
 	private boolean						help, valid, IPv4Target, IPv6Target;
@@ -66,7 +67,7 @@ public class CLIReader
 	 * it is a valid
 	 * 
 	 * @param args
-	 *                 aregs from the CLI
+	 *                 from the CLI
 	 */
 	CLIReader ( String[] args )
 	{
@@ -142,17 +143,17 @@ public class CLIReader
 		if ( IPv4Addresses.isEmpty() && IPv6Addresses.isEmpty() )
 		{
 			feedback.append("No valid addresses or host specified.\n");
-		}
+		} // if
 
 		if ( Ports.isEmpty() )
 		{
 			feedback.append("No ports specified.\n");
-		}
+		} // if
 
 		if ( feedback.length() > 0 )
 		{
 			return;
-		}
+		} // if
 
 		/*
 		 * Final setup
@@ -162,7 +163,7 @@ public class CLIReader
 		{
 			IPv4Target	= true;
 			IPv6Target	= true;
-		}
+		} // if
 
 		IPv4Addresses	= Collections.unmodifiableMap(IPv4Addresses);
 		IPv6Addresses	= Collections.unmodifiableMap(IPv6Addresses);
@@ -306,11 +307,11 @@ public class CLIReader
 		try
 		{
 			Ports.add(Integer.decode(splitarg));
-		}
+		} // try
 		catch ( NumberFormatException e )
 		{
 			feedback.append("Unknown port: \'").append(splitarg).append("\'\n");
-		}
+		} // catch
 	} // processPort
 
 
@@ -329,23 +330,23 @@ public class CLIReader
 				if ( address instanceof Inet4Address )
 				{
 					IPv4Addresses.put((Inet4Address) address, splitarg);
-				}
+				} // if
 				else if ( address instanceof Inet6Address )
 				{
 					IPv6Addresses.put((Inet6Address) address, splitarg);
-				}
+				} // else if
 				else
 				{
 					BadHosts.add(splitarg);
-				}
-			}
-		}
+				} // else
+			} // for
+		} // try
 		catch ( UnknownHostException e )
 		{
 			BadHosts.add(splitarg);
 			feedback.append("Error on Host/Address: \'").append(splitarg).append("\'\n\tError:").append(e.getMessage())
 					.append("\'\n");
-		}
+		} // catch
 	} // processHost
 
 } // CLIReader

@@ -15,7 +15,7 @@
 
 	<groupId>com.github.technosf.connectomatic</groupId>
 	<artifactId>connectomatic</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<packaging>jar</packaging>
 
 	<inceptionYear>2020</inceptionYear>
@@ -67,7 +67,16 @@ Licensed under GNU GENERAL PUBLIC LICENSE, Version 3.0 or greater</description>
 						<manifest>
 							<addClasspath>true</addClasspath>
 							<mainClass>com.github.technosf.connectomatic.ConnectOMatic</mainClass>
+							<useUniqueVersions>true</useUniqueVersions>
 						</manifest>
+						<manifestEntries>
+							<Release>${version}</Release>
+						    <Build-Jdk>${java.version} (${java.vendor} ${java.vm.version})</Build-Jdk>
+						    <Build-Jdk>${java.version} (${java.vendor} ${java.vm.version})</Build-Jdk>
+                            <Build-Timestamp>${git.build.time}</Build-Timestamp>
+                            <Build-Revision>${git.commit.id}</Build-Revision>
+                            <Build-OS>${os.name} ${os.arch} ${os.version}</Build-OS>
+						</manifestEntries>
 					</archive>
 				</configuration>
 			</plugin>
@@ -80,24 +89,6 @@ Licensed under GNU GENERAL PUBLIC LICENSE, Version 3.0 or greater</description>
 			<artifactId>testng</artifactId>
 			<version>7.1.0</version>
 			<scope>test</scope>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.easymock/easymock -->
-		<dependency>
-			<groupId>org.easymock</groupId>
-			<artifactId>easymock</artifactId>
-			<version>4.2</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.7.30</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
-			<version>1.7.30</version>
-			<scope>runtime</scope>
 		</dependency>
 	</dependencies>
 </project>

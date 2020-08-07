@@ -5,6 +5,60 @@ Run on a given host, this Java executable _.jar_ identifies the host name, and t
 It reports on connection success and failures for each combination.
 In this way each potential route from the localhost to a set of external hosts, say, through a firewall, can be confirmed.
 
+## Package and Help
+_Connect-O-Matic_ is coded to be packaged as an executable _.jar_ and run from the CLI. It's writing with _Maven_ packaging, because I find _Maven_ to be easier than _gradle_. Download the source and, to build and get help:
+
+```console
+technosf@github:connectomatic~$ mvn package
+technosf@github:connectomatic~$ java -jar target/connectomatic-1.0.0.jar -?	
+
+Connect-O-Matic		Version: 1.0.0
+
+Help:
+	-i	IPv - 4 and/or 6, defaults to 4 and 6 if absent
+	-p	Port numbers, at least one required
+	-h	Hosts as hstnames, IPv4 or IPv6 addresses, at least one required
+	-?	Produces this message
+```
+	
+## Local Interfaces
+To identify local interfaces, invoke with no arguments:	
+
+```console
+technosf@github:connectomatic~$ java -jar target/connectomatic-1.0.0.jar
+
+Connect-O-Matic		Version: 1.0.0
+
+Local Interfaces: 2020-08-07T14:26:38.114617
+
+Interfaces:
+		lo                              	
+		wlp1s1                          	DE:AD:BE:ED:01:23A
+
+Loopback Addresses:
+	IPv4
+		localhost                       	127.0.0.1
+	IPv6
+		ip6-localhost                   	0:0:0:0:0:0:0:1%lo
+
+LinkLocal Addresses IPv6:
+		fe80:0:0:::1a921%wlp1s1	fe80:0:0:::1a921%wlp1s1
+
+IPv4 Addresses:
+		192.168.0.99                    	192.168.0.99
+```
+## Connection Test
+To test an example connection:
+
+```console
+technosf@github:connectomatic~$ java -jar target/connectomatic-1.0.0.jar -h github.com -p 80 -i 4
+
+Connect-O-Matic		Version: 1.0.0
+
+"IPv","Interface","Remote Address","Remote Hostname","Remote Port","Connections","Connection μs Avg","Refusals","Refusal μs Avg","Timeouts","Timeout μs Avg"
+4,192.168.1.17,140.82.114.3,github.com,80,5,154.56010208129882,0,0.0,0,0.0
+```
+Output is in **CSV** format, repleat with column header: It can be copied and _paste/special_ directly into a spreadsheet.
 
 ## License
 

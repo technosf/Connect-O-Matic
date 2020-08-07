@@ -1,5 +1,5 @@
 /*
- * Connect-O-Matic - IP network connection tester
+ * Connect-O-Matic - IP network connection tester [https://github.com/technosf/Connect-O-Matic]
  * 
  * Copyright 2020 technosf [https://github.com/technosf]
  * 
@@ -18,20 +18,30 @@
  */
 package com.github.technosf.connectomatic;
 
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.URL;
+import java.util.jar.Manifest;
+
+import com.github.technosf.connectomatic.ConnectionTask.Result;
+
 /**
  * ConnectOMatic
- * 
+ * <p>
  * Main class of <i>Connect-O-Matic</i>
  * Checks input arguments and process connections, collating and outputting the results.
  * 
+ * @since 1.0.0
+ * 
+ * @version 1.0.0
+ * 
  * @author technosf
- *
- * @since 0.0.1
  */
 public class ConnectOMatic
 {
 
-	static CLIReader clireader;
+	static LocalInterface	localInterface;
+	static CLIReader		clireader;
 
 
 	/**
@@ -39,6 +49,26 @@ public class ConnectOMatic
 	 */
 	public static void main ( String[] args )
 	{
+
+		System.out.println("\nConnect-O-Matic\t\tVersion: " + getVersion() + "\n");
+
+		localInterface = new LocalInterface();
+		if ( !localInterface.isValid() )
+		/*
+		 * Error getting network i/f
+		 * 
+		 */
+		{
+			System.out.println("Could not determine local network interfaces. Exiting");
+			System.exit(1);
+		}
+
+		if ( args.length == 0 )
+		{
+			System.out.println(localInterface.toString());
+			System.exit(0);
+		}
+
 		clireader = new CLIReader(args);
 
 		if ( !clireader.isValid() )
@@ -47,7 +77,7 @@ public class ConnectOMatic
 		 * 
 		 */
 		{
-			System.out.print(clireader.getFeedback());
+			System.out.println(clireader.getFeedback());
 			System.exit(1);
 		}
 
@@ -57,11 +87,11 @@ public class ConnectOMatic
 		 * 
 		 */
 		{
-			System.out.print(clireader.getFeedback());
+			System.out.println(clireader.getFeedback());
 		}
 		else
 		{
-			System.out.print(testConnections());
+			System.out.println(testConnections());
 		}
 		System.exit(0);
 
@@ -75,9 +105,59 @@ public class ConnectOMatic
 	 */
 	private static String testConnections ()
 	{
-		StringBuilder sb = new StringBuilder();
+		for ( int port : clireader.getPorts() )
+		{
+			if ( clireader.isIPv4Target() )
+			/*
+			 * Process IPv4 hosts connections
+			 */
+			{
+				for ( Inet4Address localif : localInterface.getIPv4Addresses().keySet() )
+				{
+					clireader.getIPv4Addresses()
+							.forEach(remoteaddr -> ConnectionTask.submit(localif, remoteaddr, port, 5));
+				}
+			} // for ipv4
+
+			if ( clireader.isIPv6Target() )
+			/*
+			 * Process IPv6 hosts connections
+			 */
+			{
+				for ( Inet6Address localif : localInterface.getIPv6Addresses().keySet() )
+				{
+					clireader.getIPv6Addresses()
+							.forEach(remoteaddr -> ConnectionTask.submit(localif, remoteaddr, port, 5));
+				}
+			} // for ipv6
+		} // for port
+
+		StringBuilder sb = new StringBuilder(Result.CSV_HEADER).append("\n");
+		for ( Result result : ConnectionTask.getResults().values() )
+		{
+			result.collate();
+			sb.append(result.toString()).append("\n");
+		}
 
 		return sb.toString();
-	}
+	} // main
+
+
+	/**
+	 * Derives, prints version info
+	 */
+	private static String getVersion ()
+	{
+		String version = "Unpackage Version";
+		try
+		{
+			URL			url			= ConnectOMatic.class.getClassLoader().getResource("META-INF/MANIFEST.MF");
+			Manifest	manifest	= new Manifest(url.openStream());
+			version = manifest.getMainAttributes().getValue("Release");
+		}
+		catch ( Exception e )
+		{}
+		return version;
+	} // getVersion
 
 }
