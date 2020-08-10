@@ -35,7 +35,7 @@ import java.util.Set;
  * 
  * @since 1.0.0
  * 
- * @version 1.0.0
+ * @version 1.0.1
  * 
  * @author technosf
  */
@@ -46,8 +46,11 @@ public class CLIReader
 	private static final String			HELP_LEGEND		= "Help:" 
 														+ "\n\t-i\tIPv - 4 and/or 6, defaults to 4 and 6 if absent" 	
 														+ "\n\t-p\tPort numbers, at least one required" 	
-														+ "\n\t-h\tHosts as hstnames, IPv4 or IPv6 addresses, at least one required"
-														+ "\n\t-?\tProduces this message\n\n" 	;
+														+ "\n\t-h\tHosts as hostnames, IPv4 or IPv6 addresses, at least one required"
+														+ "\n\t-?\tProduces this message" 
+														+ "\n\nExamples:"
+														+ "\n\tjava -jar connectomatic-*.*.*.jar -p 22 80 -h github.com www.github.com"
+														+ "\n\tjava -jar connectomatic-*.*.*.jar -i 4,6 -p 22,80 -h github.com,www.github.com\n\n" 	;
 // @formatter:on
 
 	private boolean						help, valid, IPv4Target, IPv6Target;
@@ -61,10 +64,12 @@ public class CLIReader
 
 	/**
 	 * Creates a CLIReader from the given args
+	 * <p>
 	 * Uses a crude state machine to cycle through the args and accumulate settings
 	 * and errors.
-	 * <b> Checks to see if the initial state has been set and checks arg to see if
-	 * it is a valid
+	 * <p>
+	 * For each arg, checks to see if the initial state has been set and if
+	 * it is this arg is a valid value.
 	 * 
 	 * @param args
 	 *                 from the CLI

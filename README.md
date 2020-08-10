@@ -10,15 +10,33 @@ _Connect-O-Matic_ is coded to be packaged as an executable _.jar_ and run from t
 
 ```console
 technosf@github:connectomatic~$ mvn package
-technosf@github:connectomatic~$ java -jar target/connectomatic-1.0.0.jar -?	
+technosf@github:connectomatic~$ java -jar target/connectomatic-1.0.1.jar -?	
 
-Connect-O-Matic		Version: 1.0.0
+Connect-O-Matic		Version: 1.0.1
 
 Help:
 	-i	IPv - 4 and/or 6, defaults to 4 and 6 if absent
 	-p	Port numbers, at least one required
-	-h	Hosts as hstnames, IPv4 or IPv6 addresses, at least one required
+	-h	Hosts as hostnames, IPv4 or IPv6 addresses, at least one required
 	-?	Produces this message
+
+Examples:
+	java -jar connectomatic-*.*.*.jar -p 22 80 -h github.com www.github.com
+	java -jar connectomatic-*.*.*.jar -i 4,6 -p 22,80 -h github.com,www.github.com
+
+Output is .csv, with header. Fields are:
+	• IPv
+	• Local Interface
+	• Remote Address
+	• Remote Hostname
+	• Remote Port
+	• Connections
+	• Connection μs Avg
+	• Timeouts
+	• Timeout μs Avg
+	• Refused connection count
+	• Unreachable network count
+
 ```
 	
 ## Local Interfaces
@@ -51,14 +69,16 @@ IPv4 Addresses:
 To test an example connection:
 
 ```console
-technosf@github:connectomatic~$ java -jar target/connectomatic-1.0.0.jar -h github.com -p 80 -i 4
+technosf@github:connectomatic~$ java -jar target/connectomatic-1.0.1.jar -h github.com -p 22 80 -i 4
 
 Connect-O-Matic		Version: 1.0.0
 
-"IPv","Interface","Remote Address","Remote Hostname","Remote Port","Connections","Connection μs Avg","Refusals","Refusal μs Avg","Timeouts","Timeout μs Avg"
-4,192.168.1.17,140.82.114.3,github.com,80,5,154.56010208129882,0,0.0,0,0.0
+"IPv","Interface","Remote Address","Remote Hostname","Remote Port","Connections","Connection μs Avg","Timeouts","Timeout μs Avg","Refused","Unreachable"
+4,192.168.0.99,140.82.113.4,github.com,22,5,148.05893249511718,0,0.0,0,0
+4,192.168.0.99,140.82.113.4,github.com,80,5,141.97718963623046,0,0.0,0,0
+
 ```
-Output is in **CSV** format, repleat with column header: It can be copied and _paste/special_ directly into a spreadsheet.
+Output is in **CSV** format, repleat with column header: It can be copied and  _paste/special_  directly into [LibreOffice Calc](https://www.libreoffice.org/) or saved as a  _.csv_  and opened with spreadsheet.
 
 ## License
 

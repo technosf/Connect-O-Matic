@@ -30,21 +30,32 @@ import com.github.technosf.connectomatic.ConnectionTask.Result;
  * <p>
  * Main class of <i>Connect-O-Matic</i>
  * Checks input arguments and process connections, collating and outputting the results.
+ * <p>
+ * Results are <i>.csv</i> format that can be saved of for examination in a spreadsheet
  * 
  * @since 1.0.0
  * 
- * @version 1.0.0
+ * @version 1.0.1
  * 
  * @author technosf
  */
 public class ConnectOMatic
 {
 
-	static LocalInterface	localInterface;
-	static CLIReader		clireader;
+	private static LocalInterface	localInterface;
+	private static CLIReader		clireader;
+
+	private static final String		CONST_FORMAT_HELP	= "Output is .csv, with header. Fields are:"
+			+ "\n\t• IPv\n\t• Local Interface\n\t• Remote Address\n\t• Remote Hostname\n\t• Remote Port"
+			+ "\n\t• Connections\n\t• Connection μs Avg\n\t• Timeouts\n\t• Timeout μs Avg"
+			+ "\n\t• Refused connection count\n\t• Unreachable network count\n";
 
 
 	/**
+	 * Entry point for the executable .jar
+	 * <p>
+	 * Takes the arguments, processes then and processes accordingly, producing output to the CLI
+	 * 
 	 * @param args
 	 */
 	public static void main ( String[] args )
@@ -65,11 +76,23 @@ public class ConnectOMatic
 
 		if ( args.length == 0 )
 		{
+			System.out.println("Use \"-?\" for help\n");
 			System.out.println(localInterface.toString());
 			System.exit(0);
 		}
 
 		clireader = new CLIReader(args);
+
+		if ( clireader.wantHelp() )
+		/*
+		 * Input args were not valid. Output the feedback and exit
+		 * 
+		 */
+		{
+			System.out.print(clireader.getFeedback());
+			System.out.println(CONST_FORMAT_HELP);
+			System.exit(0);
+		}
 
 		if ( !clireader.isValid() )
 		/*
@@ -81,21 +104,10 @@ public class ConnectOMatic
 			System.exit(1);
 		}
 
-		if ( clireader.wantHelp() )
-		/*
-		 * Input args were not valid. Output the feedback and exit
-		 * 
-		 */
-		{
-			System.out.println(clireader.getFeedback());
-		}
-		else
-		{
-			System.out.println(testConnections());
-		}
+		System.out.println(testConnections());
 		System.exit(0);
 
-	}
+	} // main
 
 
 	/**

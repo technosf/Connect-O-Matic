@@ -45,7 +45,7 @@ import java.util.concurrent.Executors;
  * 
  * @since 1.0.0
  * 
- * @version 1.0.0
+ * @version 1.0.1
  * 
  * @author technosf
  */
@@ -84,11 +84,18 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 
 
 		/**
+		 * Construct a result entry for the given parameters
+		 * 
 		 * @param ipv
+		 *                          the IPv
 		 * @param local
+		 *                          local address call used for connections
 		 * @param remoteaddress
+		 *                          remote address connection attempts were made to
 		 * @param port
+		 *                          the remote port
 		 * @param pingcount
+		 *                          times connection attempts are to made
 		 */
 		Result ( String ipv, String local, InetAddress remoteaddress, int port, int pingcount )
 		{
@@ -124,7 +131,7 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 
 
 		/**
-		 *
+		 * Output the result connection digest, and also the results once collated.
 		 */
 		@Override
 		public String toString ()
@@ -142,10 +149,27 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 	InetAddress	remoteaddress;
 
 
+	/**
+	 * Private default constructor.
+	 */
 	private ConnectionTask ()
 	{};
 
 
+	/**
+	 * Private generic constructor that configures the object
+	 * 
+	 * @param ipv
+	 *                          the IPv
+	 * @param localaddress
+	 *                          local address call used for connections
+	 * @param remoteaddress
+	 *                          remote address connection attempts were made to
+	 * @param port
+	 *                          the remote port
+	 * @param pingcount
+	 *                          times connection attempts are to made
+	 */
 	private ConnectionTask ( String ipv, InetAddress localaddress, InetAddress remoteaddress, int port, int pingcount )
 	{
 		super();
@@ -158,7 +182,9 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 
 
 	/**
-	 * IPv4 Constructor
+	 * IPv4 Constructor, private, called by the static {@code submit} method
+	 * <p>
+	 * Does IPv4 specific configuration
 	 */
 	private ConnectionTask ( Inet4Address localaddress, Inet4Address remoteaddress, int port, int pingcount )
 	{
@@ -167,7 +193,9 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 
 
 	/**
-	 * IPv6 Constructor
+	 * IPv6 Constructor, private, called by the static {@code submit} method
+	 * <p>
+	 * Does IPv6 specific configuration
 	 */
 	private ConnectionTask ( Inet6Address localaddress, Inet6Address remoteaddress, int port, int pingcount )
 	{
@@ -336,4 +364,4 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 		return result;
 	} // call
 
-}
+} // ConnectionTask
