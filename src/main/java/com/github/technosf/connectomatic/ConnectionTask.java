@@ -25,6 +25,7 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +69,7 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 	public static class Result
 	{
 
-		public final static String	CSV_HEADER	= "\"IPv\",\"Interface\",\"Remote Address\",\"Remote Hostname\",\"Remote Port\",\"Connections\",\"Connection μs Avg\",\"Refusals\",\"Refusal μs Avg\",\"Timeouts\",\"Timeout μs Avg\"";
+		public final static String	CSV_HEADER	= "\"IPv\",\"Interface\",\"Remote Address\",\"Remote Hostname\",\"Remote Port\",\"Connections\",\"Connection μs Avg\",\"Timeouts\",\"Timeout μs Avg\",\"Refused\",\"Unreachable\"";
 
 		StringBuilder				sb			= new StringBuilder();
 		String						ipv;
@@ -76,8 +77,8 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 		String						address;
 		String						hostname;
 		List< Float >				connects_millis;
-		List< Float >				refused_millis;
 		List< Float >				timeouts_millis;
+		int							refused, unreachable;
 		String						result;
 		boolean						collated;
 
@@ -96,7 +97,6 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 			address			= remoteaddress.getHostAddress();
 			hostname		= remoteaddress.getHostName();
 			connects_millis	= new ArrayList< Float >(pingcount);
-			refused_millis	= new ArrayList< Float >(pingcount);
 			timeouts_millis	= new ArrayList< Float >(pingcount);
 
 			sb.append(ipv).append(",").append(local).append(",").append(address).append(",").append(hostname)
@@ -115,10 +115,9 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 
 			sb.append(",").append(connects_millis.size()).append(",").append(
 					connects_millis.stream().mapToDouble(Float::doubleValue).average().orElse(0)
-			).append(",").append(refused_millis.size()).append(",").append(
-					refused_millis.stream().mapToDouble(Float::doubleValue).average().orElse(0)
-			).append(",").append(timeouts_millis.size()).append(",")
-					.append(timeouts_millis.stream().mapToDouble(Float::doubleValue).average().orElse(0));
+			).append(",").append(timeouts_millis.size()).append(",").append(
+					timeouts_millis.stream().mapToDouble(Float::doubleValue).average().orElse(0)
+			).append(",").append(refused).append(",").append(unreachable);
 			result		= sb.toString();
 			collated	= true;
 		}
@@ -308,13 +307,23 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 				 * Connection refused
 				 */
 				{
-					nanotime += System.nanoTime();
-					result.refused_millis.add(nanotime / 1000000);
+					result.refused++;
+					continue;
+				}
+				catch ( SocketException e )
+				/*
+				 * Connection refused
+				 */
+				{
+					result.unreachable++;
 					continue;
 				}
 				catch ( Exception e )
 				{
-					System.out.println("Unexprected Exception in Connection Task call() opening socket");
+					System.out.print("Unexpected Exception in Connection Task call() opening socket");
+					System.out.print(localaddress);
+					System.out.print(" - ");
+					System.out.println(remoteaddress);
 					e.printStackTrace();
 				} // try/catch
 			} // try with resource
