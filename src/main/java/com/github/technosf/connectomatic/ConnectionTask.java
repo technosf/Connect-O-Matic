@@ -45,7 +45,7 @@ import java.util.concurrent.Executors;
  * 
  * @since 1.0.0
  * 
- * @version 1.0.1
+ * @version 1.1.0
  * 
  * @author technosf
  */
@@ -69,7 +69,7 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 	public static class Result
 	{
 
-		public final static String	CSV_HEADER	= "\"IPv\",\"Interface\",\"Remote Address\",\"Remote Hostname\",\"Remote Port\",\"Connections\",\"Connection μs Avg\",\"Timeouts\",\"Timeout μs Avg\",\"Refused\",\"Unreachable\"";
+		public final static String	CSV_HEADER	= "\"IPv\",\"Interface\",\"Remote Address\",\"Remote Hostname\",\"Remote Port\",\"Connections\",\"Connection μs Avg\",\"Connection μs Min\",\"Connection μs Max\",\"Timeouts\",\"Timeout μs Avg\",\"Refused\",\"Unreachable\"";
 
 		StringBuilder				sb			= new StringBuilder();
 		String						ipv;
@@ -122,6 +122,10 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 
 			sb.append(",").append(connects_millis.size()).append(",").append(
 					connects_millis.stream().mapToDouble(Float::doubleValue).average().orElse(0)
+			).append(",").append(
+					connects_millis.stream().mapToDouble(Float::doubleValue).min().orElse(0)
+			).append(",").append(
+					connects_millis.stream().mapToDouble(Float::doubleValue).max().orElse(0)
 			).append(",").append(timeouts_millis.size()).append(",").append(
 					timeouts_millis.stream().mapToDouble(Float::doubleValue).average().orElse(0)
 			).append(",").append(refused).append(",").append(unreachable);
@@ -317,7 +321,7 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 
 				try
 				{
-					nanotime -= System.nanoTime();
+					nanotime = 0 - System.nanoTime();
 					socket.connect(remote);
 					nanotime += System.nanoTime();
 

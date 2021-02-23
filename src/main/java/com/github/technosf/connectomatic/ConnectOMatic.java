@@ -35,7 +35,7 @@ import com.github.technosf.connectomatic.ConnectionTask.Result;
  * 
  * @since 1.0.0
  * 
- * @version 1.0.1
+ * @version 1.1.0
  * 
  * @author technosf
  */
@@ -47,7 +47,7 @@ public class ConnectOMatic
 
 	private static final String		CONST_FORMAT_HELP	= "Output is .csv, with header. Fields are:"
 			+ "\n\t• IPv\n\t• Local Interface\n\t• Remote Address\n\t• Remote Hostname\n\t• Remote Port"
-			+ "\n\t• Connections\n\t• Connection μs Avg\n\t• Timeouts\n\t• Timeout μs Avg"
+			+ "\n\t• Connections\n\t• Connection μs Avg\n\t• Connection μs Min\n\t• Connection μs Max\n\t• Timeouts\n\t• Timeout μs Avg"
 			+ "\n\t• Refused connection count\n\t• Unreachable network count\n";
 
 
@@ -144,14 +144,31 @@ public class ConnectOMatic
 			} // for ipv6
 		} // for port
 
-		StringBuilder sb = new StringBuilder(Result.CSV_HEADER).append("\n");
+
+		int	connects = 0,timeouts = 0,refused = 0, unreachable = 0;
+
+		StringBuilder data = new StringBuilder(Result.CSV_HEADER).append("\n");
+		StringBuilder header = new StringBuilder();
+		
 		for ( Result result : ConnectionTask.getResults().values() )
 		{
 			result.collate();
-			sb.append(result.toString()).append("\n");
+			data.append(result.toString()).append("\n");
+			connects += result.connects_millis.size();
+			timeouts += result.timeouts_millis.size();
+			refused += result.refused;
+			unreachable += result.unreachable;
 		}
-
-		return sb.toString();
+		
+		header.append("\tSummary \tConnects: ").append(connects)
+		.append(" \tTimeouts: ").append(timeouts)
+		.append(" \tRefused: ").append(refused)
+		.append(" \tUnreachable: ").append(unreachable)
+		.append("\n\n\n")
+		.append(data);
+		
+		
+		return header.toString();
 	} // main
 
 

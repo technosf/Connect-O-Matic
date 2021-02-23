@@ -1,12 +1,12 @@
 # Connect-O-Matic
 Java CLI to test TCP reachability from local interfaces to a set of hosts over a range of ports. For firewall rule testing etc.
 
-Run on a given host, this Java executable _.jar_ identifies the host name, and the available external network interfaces. Provided with a list of hosts to try connecting to and a range of ports, it will attempt to connect with TCP from each local interface to each combination of external host and port.
+Run on a given host, this Java executable  _.jar_  identifies the host name, and the available external network interfaces. Provided with a list of hosts to try connecting to and a range of ports, it will attempt to connect with TCP from each local interface to each combination of external host and port.
 It reports on connection success and failures for each combination.
 In this way each potential route from a local interface to a set of external hosts, say through a firewall, can be confirmed or diagnosed.
 
 ## Package and Help
-_Connect-O-Matic_ is coded to be packaged as an executable _.jar_ and run from the CLI. It's writing with _Maven_ packaging, because I find _Maven_ to be easier than _gradle_. Download the source and, to build and get help:
+_Connect-O-Matic_  is coded to be packaged as an executable  _.jar_  and run from the CLI. It's written with  _Maven_  packaging, because I find  _Maven_  to be easier than _gradle_ . Download the source and, to build and get help:
 
 ```console
 technosf@github:connectomatic~$ mvn package
@@ -78,7 +78,7 @@ Connect-O-Matic		Version: 1.0.0
 4,192.168.0.99,140.82.113.4,github.com,80,5,141.97718963623046,0,0.0,0,0
 
 ```
-Output is in **CSV** format, repleat with column header: It can be copied and  _paste/special_  directly into [LibreOffice Calc](https://www.libreoffice.org/) as  _csv_ or saved as a  _.csv_  and opened with a spreadsheet.
+Output is in **CSV** format, repleat with column header: It can be copied and  _paste/special_  directly into [LibreOffice Calc](https://www.libreoffice.org/) as  _csv_  or saved as a  _.csv_  and opened with a spreadsheet.
 
 ## License
 
