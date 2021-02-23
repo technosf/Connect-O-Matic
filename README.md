@@ -10,9 +10,9 @@ _Connect-O-Matic_  is coded to be packaged as an executable  _.jar_  and run fro
 
 ```console
 technosf@github:connectomatic~$ mvn package
-technosf@github:connectomatic~$ java -jar target/connectomatic-1.0.1.jar -?	
+technosf@github:connectomatic~$ java -jar target/connectomatic-1.1.0.jar -?	
 
-Connect-O-Matic		Version: 1.0.1
+Connect-O-Matic		Version: 1.1.0
 
 Help:
 	-i	IPv - 4 and/or 6, defaults to 4 and 6 if absent
@@ -43,9 +43,9 @@ Output is .csv, with header. Fields are:
 To identify local interfaces, invoke with no arguments:	
 
 ```console
-technosf@github:connectomatic~$ java -jar target/connectomatic-1.0.0.jar
+technosf@github:connectomatic~$ java -jar target/connectomatic-1.1.0.jar
 
-Connect-O-Matic		Version: 1.0.0
+Connect-O-Matic		Version: 1.1.0
 
 Local Interfaces: 2020-08-07T14:26:38.114617
 
@@ -69,13 +69,17 @@ IPv4 Addresses:
 To test an example connection:
 
 ```console
-technosf@github:connectomatic~$ java -jar target/connectomatic-1.0.1.jar -h github.com -p 22 80 -i 4
+technosf@github:connectomatic~$ java -jar connectomatic-1.1.0.jar -h github.com -p 22 80 -i 4
 
-Connect-O-Matic		Version: 1.0.0
+Connect-O-Matic		Version: 1.1.0
 
-"IPv","Interface","Remote Address","Remote Hostname","Remote Port","Connections","Connection μs Avg","Timeouts","Timeout μs Avg","Refused","Unreachable"
-4,192.168.0.99,140.82.113.4,github.com,22,5,148.05893249511718,0,0.0,0,0
-4,192.168.0.99,140.82.113.4,github.com,80,5,141.97718963623046,0,0.0,0,0
+	Summary 	Connects: 10 	Timeouts: 0 	Refused: 0 	Unreachable: 0
+
+
+"IPv","Interface","Remote Address","Remote Hostname","Remote Port","Connections","Connection μs Avg","Connection μs Min","Connection μs Max","Timeouts","Timeout μs Avg","Refused","Unreachable"
+4,192.168.13.48,140.82.114.4,github.com,22,5,320.65453338623047,65.01171112060547,1101.0047607421875,0,0.0,0,0
+4,192.168.13.48,140.82.114.4,github.com,80,5,86.8220932006836,63.963134765625,173.01504516601562,0,0.0,0,0
+
 
 ```
 Output is in **CSV** format, repleat with column header: It can be copied and  _paste/special_  directly into [LibreOffice Calc](https://www.libreoffice.org/) as  _csv_  or saved as a  _.csv_  and opened with a spreadsheet.
