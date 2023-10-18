@@ -22,6 +22,7 @@ Help:
 
 Examples:
 	java -jar connectomatic-*.*.*.jar -p 22 80 -h github.com www.github.com
+	java -jar connectomatic-*.*.*.jar -i 4,6 -p 80-90 -h github.com,www.github.com
 	java -jar connectomatic-*.*.*.jar -i 4,6 -p 22,80 -h github.com,www.github.com
 
 Output is .csv, with header. Fields are:
