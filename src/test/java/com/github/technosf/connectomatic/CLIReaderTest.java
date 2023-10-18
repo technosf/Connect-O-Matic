@@ -103,6 +103,23 @@ public class CLIReaderTest
 				{
 						new CLIReader(new String[]
 						{
+								"-p", "-2224"
+						}), false, false, false, false, 0, 0, 0, 0
+				},				{
+						new CLIReader(new String[]
+						{
+								"-p", "2299-2224"
+						}), false, false, false, false, 0, 0, 0, 0
+				},
+				{
+						new CLIReader(new String[]
+						{
+								"-p", "2222-2225"
+						}), false, false, false, false, 4, 0, 0, 0
+				},
+				{
+						new CLIReader(new String[]
+						{
 								"-h", "name1"
 						}), false, false, false, false, 0, 1, 0, 0
 				},

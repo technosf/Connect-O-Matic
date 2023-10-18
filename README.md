@@ -1,7 +1,7 @@
 # Connect-O-Matic
 Java CLI to test TCP reachability from local interfaces to a set of hosts over a range of ports. For firewall rule testing etc.
 
-Run on a given host, this Java executable  _.jar_  identifies the host name, and the available external network interfaces. Provided with a list of hosts to try connecting to and a range of ports, it will attempt to connect with TCP from each local interface to each combination of external host and port.
+Run on a given host, this Java executable  _.jar_  identifies the host name, and the available external network interfaces. Provided with a list of hosts to try connecting to and a set or range of ports, it will attempt to connect with TCP from each local interface to each combination of external host and port.
 It reports on connection success and failures for each combination.
 In this way each potential route from a local interface to a set of external hosts, say through a firewall, can be confirmed or diagnosed.
 
@@ -10,9 +10,9 @@ _Connect-O-Matic_  is coded to be packaged as an executable  _.jar_  and run fro
 
 ```console
 technosf@github:connectomatic~$ mvn package
-technosf@github:connectomatic~$ java -jar target/connectomatic-1.1.0.jar -?	
+technosf@github:connectomatic~$ java -jar target/connectomatic-1.1.1.jar -?	
 
-Connect-O-Matic		Version: 1.1.0
+Connect-O-Matic		Version: 1.1.1
 
 Help:
 	-i	IPv - 4 and/or 6, defaults to 4 and 6 if absent
@@ -43,9 +43,9 @@ Output is .csv, with header. Fields are:
 To identify local interfaces, invoke with no arguments:	
 
 ```console
-technosf@github:connectomatic~$ java -jar target/connectomatic-1.1.0.jar
+technosf@github:connectomatic~$ java -jar target/connectomatic-1.1.1.jar
 
-Connect-O-Matic		Version: 1.1.0
+Connect-O-Matic		Version: 1.1.1
 
 Local Interfaces: 2020-08-07T14:26:38.114617
 
@@ -69,9 +69,9 @@ IPv4 Addresses:
 To test an example connection:
 
 ```console
-technosf@github:connectomatic~$ java -jar connectomatic-1.1.0.jar -h github.com -p 22 80 -i 4
+technosf@github:connectomatic~$ java -jar connectomatic-1.1.1.jar -h github.com -p 22 80 -i 4
 
-Connect-O-Matic		Version: 1.1.0
+Connect-O-Matic		Version: 1.1.1
 
 	Summary 	Connects: 10 	Timeouts: 0 	Refused: 0 	Unreachable: 0
 
@@ -88,7 +88,7 @@ Output is in **CSV** format, repleat with column header: It can be copied and  _
 
 Connect-O-Matic - IP network connection tester
 
-Copyright 2020  technosf  [http://github.com/technosf]
+Copyright 2023  technosf  [http://github.com/technosf]
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

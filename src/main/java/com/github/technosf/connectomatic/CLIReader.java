@@ -27,6 +27,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Reads CLI arguments and generates the configuration objects
@@ -35,22 +37,27 @@ import java.util.Set;
  * 
  * @since 1.0.0
  * 
- * @version 1.0.1
+ * @version 1.1.1
  * 
  * @author technosf
  */
 public class CLIReader
 {
 
+	private static final int PORT_MAX = 65535;
+	private static final Pattern REGEX_PORT_RANGE = Pattern.compile("(\\d+)-(\\d+)"); // Regex to capture 999-999 ranges
+
+  
 // @formatter:off
 	private static final String			HELP_LEGEND		= "Help:" 
 														+ "\n\t-i\tIPv - 4 and/or 6, defaults to 4 and 6 if absent" 	
-														+ "\n\t-p\tPort numbers, at least one required" 	
+														+ "\n\t-p\tPort numbers, at least one required, can be a hyphenated range" 	
 														+ "\n\t-h\tHosts as hostnames, IPv4 or IPv6 addresses, at least one required"
 														+ "\n\t-?\tProduces this message" 
 														+ "\n\nExamples:"
 														+ "\n\tjava -jar connectomatic-*.*.*.jar -p 22 80 -h github.com www.github.com"
-														+ "\n\tjava -jar connectomatic-*.*.*.jar -i 4,6 -p 22,80 -h github.com,www.github.com\n\n" 	;
+														+ "\n\tjava -jar connectomatic-*.*.*.jar -p 80-90 -h github.com www.github.com"
+														+ "\n\tjava -jar connectomatic-*.*.*.jar -i 4,6 -p 22,80-90 -h github.com,www.github.com\n\n" 	;
 // @formatter:on
 
 	private boolean						help, valid, IPv4Target, IPv6Target;
@@ -309,9 +316,41 @@ public class CLIReader
 	 */
 	private void processPort ( String splitarg )
 	{
+		Matcher matcher = REGEX_PORT_RANGE.matcher( splitarg );		
+
 		try
 		{
-			Ports.add(Integer.decode(splitarg));
+
+			if ( matcher.matches() )
+			// Process port ranges
+			{
+				Integer portStart = Integer.decode( matcher.group(1) );
+				Integer portEnd = Integer.decode( matcher.group(2) );
+
+				if ( ( portEnd < portStart ) || ( portEnd > PORT_MAX ) )
+				{
+					feedback.append("Invalid port range: \'").append(splitarg).append("\'\n");
+				}				
+				else
+				{
+					while ( portStart <= portEnd ) Ports.add(portStart++);
+				}
+
+				return;
+			}
+
+			// Process individual port number 
+			Integer port = Integer.decode(splitarg);
+
+			if ( ( port < 1 ) || ( port > PORT_MAX ) )
+			{
+				feedback.append("Invalid port range: \'").append(splitarg).append("\'\n");
+			}
+			else
+			{
+				Ports.add(port);
+			}			
+
 		} // try
 		catch ( NumberFormatException e )
 		{
