@@ -1,9 +1,11 @@
 # Connect-O-Matic
 Java CLI to test TCP reachability from local interfaces to a set of hosts over a range of ports. For firewall rule testing etc.
 
-Run on a given host, this Java executable  _.jar_  identifies the host name, and the available external network interfaces. Provided with a list of hosts to try connecting to and a set or range of ports, it will attempt to connect with TCP from each local interface to each combination of external host and port.
+Run on a given host, this Java executable  _.jar_  identifies the local host name, and each of its the available network interfaces. Provided with a list of hosts to connect to, and a set or range of ports, it will attempt to connect with TCP from each local interface to each combination of external host and port.
 It reports on connection success and failures for each combination.
 In this way each potential route from a local interface to a set of external hosts, say through a firewall, can be confirmed or diagnosed.
+
+Output is formated for a spreadsheet.
 
 ## Package and Help
 _Connect-O-Matic_  is coded to be packaged as an executable  _.jar_  and run from the CLI. It's written with  _Maven_  packaging, because I find  _Maven_  to be easier than _gradle_ . Download the source and, to build and get help:
@@ -83,7 +85,7 @@ Connect-O-Matic		Version: 1.1.1
 
 
 ```
-Output is in **CSV** format, repleat with column header: It can be copied and  _paste/special_  directly into [LibreOffice Calc](https://www.libreoffice.org/) as  _csv_  or saved as a  _.csv_  and opened with a spreadsheet.
+Output is in **CSV** format, replete with column header: It can be copied and  _paste/special_  directly into [LibreOffice Calc](https://www.libreoffice.org/) as  _csv_  or saved as a  _.csv_  and opened with a spreadsheet.
 
 ## License
 
