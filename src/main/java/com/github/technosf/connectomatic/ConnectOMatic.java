@@ -18,24 +18,28 @@
  */
 package com.github.technosf.connectomatic;
 
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.URL;
 import java.util.jar.Manifest;
 
-import com.github.technosf.connectomatic.ConnectionTask.Result;
-
 /**
  * ConnectOMatic
  * <p>
  * Main class of <i>Connect-O-Matic</i>
- * Checks input arguments and process connections, collating and outputting the results.
  * <p>
- * Results are <i>.csv</i> format that can be saved of for examination in a spreadsheet
+ * Oranizes classes that chcek input arguments, identify local interfaces and process connections.
+ * THis class then collates and outputs the results.
+ * <p>
+ * Results can be in <i>.csv</i> format that can be saved of for examination in a spreadsheet, or
+ * <i>JSON</i>, or posted to an URL as <i>JSON</i>
  * 
  * @since 1.0.0
  * 
- * @version 1.1.0
+ * @version 1.2.0
  * 
  * @author technosf
  */
@@ -45,7 +49,8 @@ public class ConnectOMatic
 	private static LocalInterface	localInterface;
 	private static CLIReader		clireader;
 
-	private static final String		CONST_FORMAT_HELP	= "Output is .csv, with header. Fields are:"
+	private static final String		CONST_FORMAT_HELP	
+			= "Output by default is .csv, with header, or JSON via a switch. Fields are:"
 			+ "\n\t• IPv\n\t• Local Interface\n\t• Remote Address\n\t• Remote Hostname\n\t• Remote Port"
 			+ "\n\t• Connections\n\t• Connection μs Avg\n\t• Connection μs Min\n\t• Connection μs Max\n\t• Timeouts\n\t• Timeout μs Avg"
 			+ "\n\t• Refused connection count\n\t• Unreachable network count\n";
@@ -104,18 +109,18 @@ public class ConnectOMatic
 			System.exit(1);
 		}
 
-		System.out.println(testConnections());
+		System.out.println(tryConnections());
 		System.exit(0);
 
 	} // main
 
 
 	/**
-	 * Run through and test all connections
+	 * Run through and try all connections
 	 * 
-	 * @return the connection test results
+	 * @return the connection try results
 	 */
-	private static String testConnections ()
+	private static String tryConnections ()
 	{
 		for ( int port : clireader.getPorts() )
 		{
@@ -127,7 +132,7 @@ public class ConnectOMatic
 				for ( Inet4Address localif : localInterface.getIPv4Addresses().keySet() )
 				{
 					clireader.getIPv4Addresses()
-							.forEach(remoteaddr -> ConnectionTask.submit(localif, remoteaddr, port, 5));
+							.forEach(remoteaddr -> ConnectionTask.submit( clireader.isJson(), localif, remoteaddr, port, 5));
 				}
 			} // for ipv4
 
@@ -139,7 +144,7 @@ public class ConnectOMatic
 				for ( Inet6Address localif : localInterface.getIPv6Addresses().keySet() )
 				{
 					clireader.getIPv6Addresses()
-							.forEach(remoteaddr -> ConnectionTask.submit(localif, remoteaddr, port, 5));
+							.forEach(remoteaddr -> ConnectionTask.submit( clireader.isJson(), localif, remoteaddr, port, 5));
 				}
 			} // for ipv6
 		} // for port
@@ -147,10 +152,9 @@ public class ConnectOMatic
 
 		int	connects = 0,timeouts = 0,refused = 0, unreachable = 0;
 
-		StringBuilder data = new StringBuilder(Result.CSV_HEADER).append("\n");
-		StringBuilder header = new StringBuilder();
+		StringBuilder data = new StringBuilder(ConnectionResult.CSV_HEADER).append("\n");
 		
-		for ( Result result : ConnectionTask.getResults().values() )
+		for ( ConnectionResult result : ConnectionTask.getResults().values() )
 		{
 			result.collate();
 			data.append(result.toString()).append("\n");
@@ -160,13 +164,42 @@ public class ConnectOMatic
 			unreachable += result.unreachable;
 		}
 		
-		header.append("\tSummary \tConnects: ").append(connects)
-		.append(" \tTimeouts: ").append(timeouts)
-		.append(" \tRefused: ").append(refused)
-		.append(" \tUnreachable: ").append(unreachable)
-		.append("\n\n\n")
-		.append(data);
-		
+
+		if ( clireader.getHttpUrlConnection() != null )
+		// POSTing result to HTTP end-point
+		{
+			HttpURLConnection hurl = clireader.getHttpUrlConnection();
+            try {
+				hurl.setRequestMethod("POST");
+				hurl.setDoOutput(true);
+				hurl.setRequestProperty("Content-Type", "application/json");
+				hurl.setRequestProperty("Accept", "application/json");
+				OutputStreamWriter osw = new OutputStreamWriter(hurl.getOutputStream());
+				osw.write(data.toString());
+				osw.flush();
+				osw.close();            
+			} catch (IOException e) 
+			{
+				System.out.println("Error POSTing results.\n");
+				e.printStackTrace();
+				System.exit(1);
+			}
+			return null;
+		}
+
+		// Not POSTing results to endpoint
+		StringBuilder header = new StringBuilder();
+
+		if (!clireader.isQuiet())
+		{
+			header.append("\tSummary \tConnects: ").append(connects)
+			.append(" \tTimeouts: ").append(timeouts)
+			.append(" \tRefused: ").append(refused)
+			.append(" \tUnreachable: ").append(unreachable)
+			.append("\n\n\n");
+		}
+
+		header.append(data);
 		
 		return header.toString();
 	} // main

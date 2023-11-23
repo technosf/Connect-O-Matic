@@ -26,8 +26,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
@@ -41,116 +39,32 @@ import java.util.concurrent.Executors;
  * port number
  * <p>
  * Connection tasks are created using a static submit method that creates and runs the task in its own
- * execution service.
+ * execution service. Results are collated as CSV lines, or JSON array lines.
  * 
  * @since 1.0.0
  * 
- * @version 1.1.0
+ * @version 1.2.0
  * 
  * @author technosf
  */
-public class ConnectionTask implements Callable< ConnectionTask.Result >
+public class ConnectionTask implements Callable< ConnectionResult >
 {
 
-	private static final CompletionService< Result >	POOL	= new ExecutorCompletionService< Result >(
+	private static final CompletionService< ConnectionResult >	CONNPOOL	
+		= new ExecutorCompletionService< ConnectionResult >(
 			Executors.newCachedThreadPool()
-	);
-	private static final Object							LOCK	= new Object();
-	private static int									futures;
+		);
+
+	private static final Object		LOCK	= new Object();
+	private static int				futures;
 	// private static ConnectionTask z = new ConnectionTask();
 
 
-	/**
-	 * Result POJO
-	 * 
-	 * @author technosf
-	 *
-	 */
-	public static class Result
-	{
-
-		public final static String	CSV_HEADER	= "\"IPv\",\"Interface\",\"Remote Address\",\"Remote Hostname\",\"Remote Port\",\"Connections\",\"Connection μs Avg\",\"Connection μs Min\",\"Connection μs Max\",\"Timeouts\",\"Timeout μs Avg\",\"Refused\",\"Unreachable\"";
-
-		StringBuilder				sb			= new StringBuilder();
-		String						ipv;
-		String						local;
-		String						address;
-		String						hostname;
-		List< Float >				connects_millis;
-		List< Float >				timeouts_millis;
-		int							refused, unreachable;
-		String						result;
-		boolean						collated;
-
-
-		/**
-		 * Construct a result entry for the given parameters
-		 * 
-		 * @param ipv
-		 *                          the IPv
-		 * @param local
-		 *                          local address call used for connections
-		 * @param remoteaddress
-		 *                          remote address connection attempts were made to
-		 * @param port
-		 *                          the remote port
-		 * @param pingcount
-		 *                          times connection attempts are to made
-		 */
-		Result ( String ipv, String local, InetAddress remoteaddress, int port, int pingcount )
-		{
-
-			this.ipv		= ipv;
-			address			= remoteaddress.getHostAddress();
-			hostname		= remoteaddress.getHostName();
-			connects_millis	= new ArrayList< Float >(pingcount);
-			timeouts_millis	= new ArrayList< Float >(pingcount);
-
-			sb.append(ipv).append(",").append(local).append(",").append(address).append(",").append(hostname)
-					.append(",").append(port);
-			result = sb.toString();
-		}
-
-
-		/**
-		 * Collate the results
-		 */
-		public void collate ()
-		{
-			if ( collated )
-				return;
-
-			sb.append(",").append(connects_millis.size()).append(",").append(
-					connects_millis.stream().mapToDouble(Float::doubleValue).average().orElse(0)
-			).append(",").append(
-					connects_millis.stream().mapToDouble(Float::doubleValue).min().orElse(0)
-			).append(",").append(
-					connects_millis.stream().mapToDouble(Float::doubleValue).max().orElse(0)
-			).append(",").append(timeouts_millis.size()).append(",").append(
-					timeouts_millis.stream().mapToDouble(Float::doubleValue).average().orElse(0)
-			).append(",").append(refused).append(",").append(unreachable);
-			result		= sb.toString();
-			collated	= true;
-		}
-
-
-		/**
-		 * Output the result connection digest, and also the results once collated.
-		 */
-		@Override
-		public String toString ()
-		{
-			return result;
-		}
-
-	} // Result
-
-
-	Result		result;
-	int			port;
-	int			pingcount;
-	InetAddress	localaddress;
-	InetAddress	remoteaddress;
+	private ConnectionResult		result;
+	private int						port;
+	private int						pingcount;
+	private InetAddress				localaddress;
+	private InetAddress				remoteaddress;
 
 
 	/**
@@ -174,14 +88,14 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 	 * @param pingcount
 	 *                          times connection attempts are to made
 	 */
-	private ConnectionTask ( String ipv, InetAddress localaddress, InetAddress remoteaddress, int port, int pingcount )
+	private ConnectionTask ( boolean json, String ipv, InetAddress localaddress, InetAddress remoteaddress, int port, int pingcount )
 	{
 		super();
-		result				= new Result(ipv, localaddress.getHostAddress(), remoteaddress, port, pingcount);
-		this.port			= port;
-		this.pingcount		= pingcount;
-		this.localaddress	= localaddress;
-		this.remoteaddress	= remoteaddress;
+		result					= new ConnectionResult( json, ipv, localaddress, remoteaddress, port, pingcount );
+		this.port				= port;
+		this.pingcount			= pingcount;
+		this.localaddress		= localaddress;
+		this.remoteaddress		= remoteaddress;
 	}
 
 
@@ -190,9 +104,9 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 	 * <p>
 	 * Does IPv4 specific configuration
 	 */
-	private ConnectionTask ( Inet4Address localaddress, Inet4Address remoteaddress, int port, int pingcount )
+	private ConnectionTask ( boolean json, Inet4Address localaddress, Inet4Address remoteaddress, int port, int pingcount )
 	{
-		this("4", localaddress, remoteaddress, port, pingcount);
+		this( json, "4", localaddress, remoteaddress, port, pingcount);
 	}
 
 
@@ -201,9 +115,9 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 	 * <p>
 	 * Does IPv6 specific configuration
 	 */
-	private ConnectionTask ( Inet6Address localaddress, Inet6Address remoteaddress, int port, int pingcount )
+	private ConnectionTask ( boolean json, Inet6Address localaddress, Inet6Address remoteaddress, int port, int pingcount )
 	{
-		this("6", localaddress, remoteaddress, port, pingcount);
+		this( json, "6", localaddress, remoteaddress, port, pingcount);
 	}
 
 
@@ -219,11 +133,11 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 	 * @param pingcount
 	 *                          the number of times to try and connect
 	 */
-	public static void submit ( Inet4Address localaddress, Inet4Address remoteaddress, int port, int pingcount )
+	public static void submit ( boolean json, Inet4Address localaddress, Inet4Address remoteaddress, int port, int pingcount )
 	{
 		synchronized ( LOCK )
 		{
-			POOL.submit(new ConnectionTask(localaddress, remoteaddress, port, pingcount));
+			CONNPOOL.submit(new ConnectionTask( json, localaddress, remoteaddress, port, pingcount ));
 			futures++;
 		}
 	}
@@ -241,11 +155,11 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 	 * @param pingcount
 	 *                          the number of times to try and connect
 	 */
-	public static void submit ( Inet6Address localaddress, Inet6Address remoteaddress, int port, int pingcount )
+	public static void submit ( boolean json, Inet6Address localaddress, Inet6Address remoteaddress, int port, int pingcount )
 	{
 		synchronized ( LOCK )
 		{
-			POOL.submit(new ConnectionTask(localaddress, remoteaddress, port, pingcount));
+			CONNPOOL.submit(new ConnectionTask( json, localaddress, remoteaddress, port, pingcount ));
 			futures++;
 		} // synchronized
 	} // submit
@@ -258,18 +172,18 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 	 * 
 	 * @return An ordered map of the results
 	 */
-	public static Map< String, Result > getResults ()
+	public static Map< String, ConnectionResult > getResults ()
 	{
 		synchronized ( LOCK )
 		{
-			Map< String, Result > results = new TreeMap<>();
+			Map< String, ConnectionResult > results = new TreeMap<>();
 			while ( futures > 0 )
 			{
 				futures--;
-				Result result = null;
+				ConnectionResult result = null;
 				try
 				{
-					result = POOL.take().get();
+					result = CONNPOOL.take().get();
 					results.put(result.toString(), result);
 				}
 				catch ( NullPointerException e )
@@ -295,7 +209,7 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 	 * Performs the connection several time, calculating the time to open the connection
 	 */
 	@Override
-	public Result call ()
+	public ConnectionResult call ()
 	{
 		float				nanotime	= 0;
 		InetSocketAddress	local		= new InetSocketAddress(localaddress, 0);
@@ -309,6 +223,7 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 			try ( Socket socket = new Socket() )
 			{
 				try
+				// Get local socket
 				{
 					socket.bind(local);
 				}
@@ -320,6 +235,7 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 				} // try/catch
 
 				try
+				// Attempt connection
 				{
 					nanotime = 0 - System.nanoTime();
 					socket.connect(remote);
@@ -344,7 +260,7 @@ public class ConnectionTask implements Callable< ConnectionTask.Result >
 				}
 				catch ( SocketException e )
 				/*
-				 * Connection refused
+				 * Connection unreachable
 				 */
 				{
 					result.unreachable++;

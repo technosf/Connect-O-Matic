@@ -34,6 +34,8 @@ import java.util.Set;
 
 /**
  * Extract the local network interfaces
+ * <p>
+ * Uses {@code java.net.NetworkInterface}
  * 
  * @since 1.0.0
  * 
@@ -193,6 +195,9 @@ public class LocalInterface
 
 	/**
 	 * Retrieves and collates all local network interfaces
+	 * <p>
+	 * Uses {@code java.net.NetworkInterface} to retrieve local Interfaces
+	 * and then collates them into collection with their external IP
 	 * 
 	 * @throws SocketException
 	 */

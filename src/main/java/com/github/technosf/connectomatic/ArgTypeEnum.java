@@ -26,14 +26,24 @@ import java.util.concurrent.ConcurrentHashMap;
  * 
  * @since 1.0.0
  * 
- * @version 1.0.0
+ * @version 1.2.0
  * 
  * @author technosf
  */
 public enum ArgTypeEnum
 {
 
-	HELP ( "?" ), IPV ( "i" ), PORT ( "p" ), HOST ( "h" ), UNKNOWN ( null ), NOT_A_FLAG ( null );
+	HELP ( "?" )
+	, IPV ( "i", true )
+	, PORT ( "p", true )
+	, HOST ( "h", true )
+	, ATTEMPTS ( "a", true )
+	, LOCAL ( "l" )
+	, JSON ( "j" )
+	, URI ( "u", true )
+	, QUIET ( "q" )
+	, UNKNOWN ( null )
+	, NOT_A_FLAG ( null );
 
 
 	private final static String						FLAG_PREFIX	= "-";	// Argument flag prefix
@@ -41,8 +51,37 @@ public enum ArgTypeEnum
 	private final static Map< String, ArgTypeEnum >	FLAG_INDEX;			// Store for an index of flags
 
 	private final boolean							IS_A_FLAG;			// Is flagged as an argument
-	private final String							FLAG;				// Is flagged as an argument
+	private final String							FLAG;				// The flag
+	private final boolean							PARM_REQ;			// Is flagged as an argument
 
+
+	/**
+	 * Constructs the enum for argument type flags
+	 * 
+	 * @param argFlag
+	 *                    Flag for a particular argument type
+	 * @param reqParm
+	 * 					Indicates if a following parameter is required
+	 * 
+	 * @throws Exception
+	 *                       Thrown if duplicate argument flags are submitted
+	 */
+	private ArgTypeEnum ( String argFlag, boolean reqParm ) 
+		throws ExceptionInInitializerError
+	{
+		if ( argFlag == null )
+		{
+			FLAG		= "";
+			IS_A_FLAG	= false;
+			PARM_REQ 	= false;
+		}
+		else
+		{
+			FLAG		= argFlag.trim();
+			IS_A_FLAG	= true;
+			PARM_REQ 	= reqParm;
+		}
+	}
 
 	/**
 	 * Constructs the enum for argument type flags
@@ -53,19 +92,12 @@ public enum ArgTypeEnum
 	 * @throws Exception
 	 *                       Thrown if duplicate argument flags are submitted
 	 */
-	private ArgTypeEnum ( String argFlag ) throws ExceptionInInitializerError
+	private ArgTypeEnum ( String argFlag) 
+		throws ExceptionInInitializerError
 	{
-		if ( argFlag == null )
-		{
-			FLAG		= "";
-			IS_A_FLAG	= false;
-		}
-		else
-		{
-			FLAG		= argFlag.trim();
-			IS_A_FLAG	= true;
-		}
+		this( argFlag, false); 
 	}
+
 
 
 	static
@@ -100,6 +132,17 @@ public enum ArgTypeEnum
 
 
 	/**
+	 * Returns the representation of the flag
+	 * 
+	 * @return the flag, or empty string
+	 */
+	String getFlag ()
+	{
+		return FLAG_PREFIX + FLAG;
+	}
+
+
+	/**
 	 * Does this {@code ArgTypeEnum} represent a flag?
 	 * 
 	 * @return true if this is a flag
@@ -111,13 +154,14 @@ public enum ArgTypeEnum
 
 
 	/**
-	 * Returns the representation of the flag
+	 * Does this {@code ArgTypeEnum} require a parameter
 	 * 
-	 * @return the flag, or empty string
+	 * @return true if parameter required
 	 */
-	String getFlag ()
+	boolean reqParm ()
 	{
-		return FLAG_PREFIX + FLAG;
+		return PARM_REQ;
 	}
+
 
 }

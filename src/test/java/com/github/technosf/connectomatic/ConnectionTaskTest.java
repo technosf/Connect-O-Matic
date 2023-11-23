@@ -18,8 +18,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.github.technosf.connectomatic.ConnectionTask.Result;
-
 public class ConnectionTaskTest
 {
 
@@ -55,7 +53,7 @@ public class ConnectionTaskTest
 	public void submitTestInet4AddressInet4Addressintint () throws UnknownHostException
 	{
 		Inet4Address local = (Inet4Address) Inet4Address.getByName("localhost");
-		ConnectionTask.submit(local, local, t4p, 5);
+		ConnectionTask.submit( false, local, local, t4p, 5);
 	}
 
 
@@ -66,7 +64,7 @@ public class ConnectionTaskTest
 	public void submitTestInet6AddressInet6Addressintint () throws UnknownHostException
 	{
 		Inet6Address local = (Inet6Address) Inet6Address.getByName("::1");
-		ConnectionTask.submit(local, local, t6p, 5);
+		ConnectionTask.submit( false, local, local, t6p, 5);
 	}
 
 
@@ -76,7 +74,7 @@ public class ConnectionTaskTest
 	} )
 	public void getResultsTest ()
 	{
-		Map< String, Result > results = ConnectionTask.getResults();
+		Map< String, ConnectionResult > results = ConnectionTask.getResults();
 		assertEquals(results.size(), 2, "Submition count");
 		results.forEach( ( i, j ) ->
 		{

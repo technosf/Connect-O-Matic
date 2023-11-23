@@ -18,14 +18,18 @@
  */
 package com.github.technosf.connectomatic;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.net.URL;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,13 +41,15 @@ import java.util.regex.Pattern;
  * 
  * @since 1.0.0
  * 
- * @version 1.1.1
+ * @version 1.2.0
  * 
  * @author technosf
  */
 public class CLIReader
 {
 
+	static final int CONNECTS_DEFAULT = 5;
+	private static final int CONNECTS_MAX = 64;
 	private static final int PORT_MAX = 65535;
 	private static final Pattern REGEX_PORT_RANGE = Pattern.compile("(\\d+)-(\\d+)"); // Regex to capture 999-999 ranges
 
@@ -53,18 +59,29 @@ public class CLIReader
 														+ "\n\t-i\tIPv - 4 and/or 6, defaults to 4 and 6 if absent" 	
 														+ "\n\t-p\tPort numbers, at least one required, can be a hyphenated range" 	
 														+ "\n\t-h\tHosts as hostnames, IPv4 or IPv6 addresses, at least one required"
+														+ "\n\t-a\tAttempts to connect, defaults to 5, but can be 1-255"
+														+ "\n\t-l\tLocal addresses in the host set should be tested and not ignored"
+														+ "\n\t-j\tProduce JSON output instead of CSV"
+														+ "\n\t-u\tURI, POST JSON results to the provided URI"
+														+ "\n\t-q\tQuiet mode, outputs result only, without preamble or summary"
 														+ "\n\t-?\tProduces this message" 
 														+ "\n\nExamples:"
 														+ "\n\tjava -jar connectomatic-*.*.*.jar -p 22 80 -h github.com www.github.com"
-														+ "\n\tjava -jar connectomatic-*.*.*.jar -p 80-90 -h github.com www.github.com"
-														+ "\n\tjava -jar connectomatic-*.*.*.jar -i 4,6 -p 22,80-90 -h github.com,www.github.com\n\n" 	;
+														+ "\n\tjava -jar connectomatic-*.*.*.jar -p 80-90 -h github.com www.github.com localhost -l"
+														+ "\n\tjava -jar connectomatic-*.*.*.jar -i 4,6 -p 22,80-90 -h github.com,www.github.com" 	
+														+ "\n\tjava -jar connectomatic-*.*.*.jar -j -i 4,6 -p 22,80-90 -h github.com,www.github.com" 	
+														+ "\n\tjava -jar connectomatic-*.*.*.jar -a 1 -u http://myobjectdb/index -i 6 -p 22,80-90 -h github.com,www.github.com\n\n" 	
+														+ "\nCopyright 2023  technosf  [http://github.com/technosf]\n\n";	
 // @formatter:on
 
-	private boolean						help, valid, IPv4Target, IPv6Target;
+	private Set<ArgTypeEnum>			usedFlags 		= new HashSet<>();
+	private boolean						help, valid, IPv4Target, IPv6Target, local, json, quiet;
 	private Map< Inet4Address, String >	IPv4Addresses	= new HashMap<>();
 	private Map< Inet6Address, String >	IPv6Addresses	= new HashMap<>();
-	private Set< String >				BadHosts		= new HashSet<>();
-	private Set< Integer >				Ports			= new HashSet<>();
+	private Set< String >				badHosts		= new HashSet<>();
+	private Set< Integer >				ports			= new HashSet<>();
+	private int							attempts		= CONNECTS_DEFAULT;
+	private HttpURLConnection			httpUrlConnection;
 
 	private StringBuilder				feedback		= new StringBuilder();
 
@@ -84,6 +101,8 @@ public class CLIReader
 	CLIReader ( String[] args )
 	{
 		ArgTypeEnum currentState = ArgTypeEnum.NOT_A_FLAG; // The current state arg type
+		
+		boolean argReqParams = false;
 
 		for ( String arg : args )
 		{
@@ -99,8 +118,8 @@ public class CLIReader
 				feedback.append(HELP_LEGEND);
 				IPv4Addresses.clear();
 				IPv6Addresses.clear();
-				BadHosts.clear();
-				Ports.clear();
+				badHosts.clear();
+				ports.clear();
 				return;
 			}
 
@@ -110,11 +129,33 @@ public class CLIReader
 			 * next arg
 			 */
 			{
-				if ( currentState == thisArgType ) // Found a repeating flag
+				if ( usedFlags.contains(thisArgType) ) // Found a repeating flag
 					feedback.append("Duplicate flag \'").append(arg).append("\'\n");
+
+				if ( argReqParams )	// Require param flag found for last arg type
+					feedback.append("Missing param for flag \'").append(currentState.getFlag()).append("\'\n");
+
+				usedFlags.add(thisArgType);
 				currentState = thisArgType;
-				continue;
+				argReqParams = currentState.reqParm();
+				
+				switch ( currentState )
+				/* Set any boolean flgs */
+				{
+					case LOCAL:
+						local	= true;
+						continue;
+					case JSON:
+						json 	= true;
+						continue;
+					case QUIET:
+						quiet	= true;
+						continue;
+					default:
+						continue;
+				} // switch
 			} // if
+
 
 			if ( ArgTypeEnum.NOT_A_FLAG == currentState && !thisArgType.isFlag() )
 			/*
@@ -127,6 +168,9 @@ public class CLIReader
 				continue;
 			} // if
 
+			//Process params
+			argReqParams = false;
+			
 			/*
 			 * Parse the set of args globbed in this string.
 			 */
@@ -143,11 +187,18 @@ public class CLIReader
 					case HOST:
 						processHost(splitarg);
 						break;
+					case ATTEMPTS:
+						processAttempts(splitarg);
+						break;
+					case URI:
+						processUrl(splitarg);
+						break;
 					default:
 						feedback.append("Unknown argument: \'").append(splitarg).append("\'\n");
 				} // switch
 			} // for
-		} // for
+		} // for ( String arg : args )
+
 
 		/*
 		 * Check CLI validity
@@ -157,7 +208,7 @@ public class CLIReader
 			feedback.append("No valid addresses or host specified.\n");
 		} // if
 
-		if ( Ports.isEmpty() )
+		if ( ports.isEmpty() )
 		{
 			feedback.append("No ports specified.\n");
 		} // if
@@ -166,6 +217,7 @@ public class CLIReader
 		{
 			return;
 		} // if
+
 
 		/*
 		 * Final setup
@@ -179,8 +231,8 @@ public class CLIReader
 
 		IPv4Addresses	= Collections.unmodifiableMap(IPv4Addresses);
 		IPv6Addresses	= Collections.unmodifiableMap(IPv6Addresses);
-		Ports			= Collections.unmodifiableSet(Ports);
-		BadHosts		= Collections.unmodifiableSet(BadHosts);
+		ports			= Collections.unmodifiableSet(ports);
+		badHosts		= Collections.unmodifiableSet(badHosts);
 
 		valid			= true;
 
@@ -243,6 +295,38 @@ public class CLIReader
 
 
 	/**
+	 * Were Local->local circuit connects requested?
+	 * 
+	 * @return true for IPv6
+	 */
+	public boolean isLocalIncluded ()
+	{
+		return local;
+	} // isLocalIncluded
+
+
+	/**
+	 * Was quiet output (no summary) requested?
+	 * 
+	 * @return true for Quiet
+	 */
+	public boolean isQuiet ()
+	{
+		return quiet;
+	} // isQuiet
+
+	/**
+	 * Was JSON output (no CSV) requested?
+	 * 
+	 * @return true for JSON, false for CSV
+	 */
+	public boolean isJson ()
+	{
+		return json;
+	} // isJson
+
+
+	/**
 	 * Get the IPv4 addresses that were resolved from the hosts
 	 * 
 	 * @return requested IPv4 addresses
@@ -271,7 +355,7 @@ public class CLIReader
 	 */
 	public Set< String > getBadHosts ()
 	{
-		return BadHosts;
+		return badHosts;
 	} // getBadHosts
 
 
@@ -282,8 +366,30 @@ public class CLIReader
 	 */
 	public Set< Integer > getPorts ()
 	{
-		return Ports;
+		return ports;
 	} // getPorts
+
+
+	/**
+	 * Get the number of connection attempts requested
+	 * 
+	 * @return requested attempts
+	 */
+	public int getAttempts ()
+	{
+		return attempts;
+	} // getAttempts
+
+	/**
+	 * Get the Http URL Connection to POST JSON results to
+	 * Return NULL is no URL was provided in the parameters.
+	 * 
+	 * @return the Http URL Connection, or NULL 
+	 */
+	public HttpURLConnection getHttpUrlConnection ()
+	{
+		return httpUrlConnection;
+	} // getUri
 
 
 	/**
@@ -333,7 +439,7 @@ public class CLIReader
 				}				
 				else
 				{
-					while ( portStart <= portEnd ) Ports.add(portStart++);
+					while ( portStart <= portEnd ) ports.add(portStart++);
 				}
 
 				return;
@@ -348,7 +454,7 @@ public class CLIReader
 			}
 			else
 			{
-				Ports.add(port);
+				ports.add(port);
 			}			
 
 		} // try
@@ -381,16 +487,55 @@ public class CLIReader
 				} // else if
 				else
 				{
-					BadHosts.add(splitarg);
+					badHosts.add(splitarg);
 				} // else
 			} // for
 		} // try
 		catch ( UnknownHostException e )
 		{
-			BadHosts.add(splitarg);
+			badHosts.add(splitarg);
 			feedback.append("Error on Host/Address: \'").append(splitarg).append("\'\n\tError:").append(e.getMessage())
 					.append("\'\n");
 		} // catch
 	} // processHost
+
+
+	private void processUrl(String splitarg) 
+	{
+		try {
+			URL url = new URL(splitarg);
+			httpUrlConnection =  (HttpURLConnection) url.openConnection();
+			
+		} 
+		catch (MalformedURLException e) 
+		{			
+			feedback.append("Error with URL format: \'").append(splitarg).append("\'\n\tError:").append(e.getMessage())
+					.append("\'\n");
+		} catch (IOException e) 
+		{
+			feedback.append("Error with URL endpoint: \'").append(splitarg).append("\'\n\tError:").append(e.getMessage())
+					.append("\'\n");
+		}
+    } // processUri
+
+
+    private void processAttempts(String splitarg) 
+	{
+		int a;
+
+		try 
+		{	
+			a = Integer.parseInt(splitarg);
+
+			if ( a > 0 && a <= CONNECTS_MAX ) 
+			{
+				attempts = a;
+				return;
+			}
+		}
+		catch (NumberFormatException e)
+		{}
+		feedback.append("Error on Attempts (requires a integer of 1 to 50): \'").append(splitarg).append("\'\n");
+	} // processAttempts
 
 } // CLIReader

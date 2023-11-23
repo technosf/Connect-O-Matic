@@ -2,238 +2,391 @@ package com.github.technosf.connectomatic;
 
 import static org.testng.Assert.assertEquals;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+
 public class CLIReaderTest
 {
+	static String URL_ADDR_GOOD = "https://github.com/";
+	static URL URL_GOOD;
+	{ 
+		try {
+			URL_GOOD = new URL(URL_ADDR_GOOD);
+		} catch (MalformedURLException e) 
+		{
+			e.printStackTrace();
+			org.testng.Assert.fail();
+		}
+	}
 
+	/**
+	 * CLIReader clireader, 
+	 * boolean valid, 
+	 * boolean help, 
+	 * boolean ipv4, 
+	 * boolean ipv6, 
+	 * boolean local,
+	 * boolean quiet,
+	 * boolean json,
+	 * int ports, 
+	 * int hosts, 
+	 * int ipv4s,  
+	 * int ipv6s,
+	 * byte attempts,
+	 * URL url
+	 * @return 
+	 */
 	@DataProvider
 	public static Object[][] dataMethod ()
 	{
 		return new Object[][]
 		{
-				{
-						new CLIReader(new String[] {}), false, false, false, false, 0, 0, 0, 0
+				{10,
+						new CLIReader(new String[] {}), false, false, false, false,false,false, false,0, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{11,
 						new CLIReader(new String[]
 						{
 								""
-						}), false, false, false, false, 0, 0, 0, 0
+						}), false, false, false, false,false,false,false, 0, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{12,
 						new CLIReader(new String[]
 						{
 								"-z"
-						}), false, false, false, false, 0, 0, 0, 0
+						}), false, false, false, false, false,false,false,0, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{13,
 						new CLIReader(new String[]
 						{
 								"-i"
-						}), false, false, false, false, 0, 0, 0, 0
+						}), false, false, false, false,false, false,false,0, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{14,
 						new CLIReader(new String[]
 						{
 								"-i", "-i"
-						}), false, false, false, false, 0, 0, 0, 0
+						}), false, false, false, false, false,false,false,0, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{15,
 						new CLIReader(new String[]
 						{
 								"-i", "-p"
-						}), false, false, false, false, 0, 0, 0, 0
+						}), false, false, false, false,false,false, false,0, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{16,
 						new CLIReader(new String[]
 						{
 								"-i", "-p", "-p"
-						}), false, false, false, false, 0, 0, 0, 0
+						}), false, false, false, false,false,false, false,0, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{17,
 						new CLIReader(new String[]
 						{
 								"-i", "3"
-						}), false, false, false, false, 0, 0, 0, 0
+						}), false, false, false, false,false,false,false, 0, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{18,
 						new CLIReader(new String[]
 						{
 								"-i", "4"
-						}), false, false, true, false, 0, 0, 0, 0
+						}), false, false, true, false, false,false,false,0, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{20,
 						new CLIReader(new String[]
 						{
 								"-i", "6"
-						}), false, false, false, true, 0, 0, 0, 0
+						}), false, false, false, true,false,false, false,0, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{21,
 						new CLIReader(new String[]
 						{
 								"-i", "4", "6"
-						}), false, false, true, true, 0, 0, 0, 0
+						}), false, false, true, true,false,false, false,0, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{22,
 						new CLIReader(new String[]
 						{
 								"-i", "4", "6", "9"
-						}), false, false, true, true, 0, 0, 0, 0
+						}), false, false, true, true, false,false,false,0, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{23,
 						new CLIReader(new String[]
 						{
 								"-p", "999"
-						}), false, false, false, false, 1, 0, 0, 0
+						}), false, false, false, false,false, false,false,1, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{24,
 						new CLIReader(new String[]
 						{
 								"-p", "999", "999", "999"
-						}), false, false, false, false, 1, 0, 0, 0
+						}), false, false, false, false,false,false, false,1, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{25,
 						new CLIReader(new String[]
 						{
 								"-p", "999", "999", "22"
-						}), false, false, false, false, 2, 0, 0, 0
+						}), false, false, false, false, false,false,false,2, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{26,
 						new CLIReader(new String[]
 						{
 								"-p", "-2224"
-						}), false, false, false, false, 0, 0, 0, 0
-				},				{
+						}), false, false, false, false, false,false,false,0, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
+				},	
+				{27,
 						new CLIReader(new String[]
 						{
 								"-p", "2299-2224"
-						}), false, false, false, false, 0, 0, 0, 0
+						}), false, false, false, false,false, false,false,0, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{28,
 						new CLIReader(new String[]
 						{
 								"-p", "2222-2225"
-						}), false, false, false, false, 4, 0, 0, 0
+						}), false, false, false, false,false,false, false,4, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{29,
 						new CLIReader(new String[]
 						{
 								"-h", "name1"
-						}), false, false, false, false, 0, 1, 0, 0
+						}), false, false, false, false, false,false,false,0, 1, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{30,
 						new CLIReader(new String[]
 						{
 								"-h", "name1", "name1", "name1"
-						}), false, false, false, false, 0, 1, 0, 0
+						}), false, false, false, false, false,false,false,0, 1, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{31,
 						new CLIReader(new String[]
 						{
 								"-h", "name1", "name1", "name2"
-						}), false, false, false, false, 0, 2, 0, 0
+						}), false, false, false, false,false, false, false,0, 2, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{32,
 						new CLIReader(new String[]
 						{
 								"-h", "name1"
-						}), false, false, false, false, 0, 1, 0, 0
+						}), false, false, false, false,false,false, false,0, 1, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{33,
 						new CLIReader(new String[]
 						{
 								"-h", "localhost", "-i", "4"
-						}), false, false, true, false, 0, 0, 1, 0
+						}), false, false, true, false,false, false,false,0, 0, 1, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{34,
 						new CLIReader(new String[]
 						{
 								"-h", "localhost", "-p", "22", "23"
-						}), true, false, true, true, 2, 0, 1, 0
+						}), true, false, true, true, false,false,false,2, 0, 1, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{35,
 						new CLIReader(new String[]
 						{
 								"-i", "4", "-h", "localhost", "-p", "22",
-						}), true, false, true, false, 1, 0, 1, 0
+						}), true, false, true, false,false,false,false, 1, 0, 1, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{36,
 						new CLIReader(new String[]
 						{
 								"-i", "4", "-h", "localhost", "localhost", "-p", "22",
-						}), true, false, true, false, 1, 0, 1, 0
+						}), true, false, true, false, false,false,false,1, 0, 1, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{37,
 						new CLIReader(new String[]
 						{
 								"-i", "4", "-h", "localhost", "::1", "-p", "22", "22",
-						}), true, false, true, false, 1, 0, 1, 1
+						}), true, false, true, false, false,false,false,1, 0, 1, 1,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{38,
 						new CLIReader(new String[]
 						{
 								"-i", "6", "4", "-h", "localhost", "::1", "-p", "22", "22",
-						}), true, false, true, true, 1, 0, 1, 1
+						}), true, false, true, true, false,false,false,1, 0, 1, 1,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{30,
 						new CLIReader(new String[]
 						{
 								"-h", "::1", "-p", "22", "23",
-						}), true, false, true, true, 2, 0, 0, 1
+						}), true, false, true, true, false,false,false,2, 0, 0, 1,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{39,
 						new CLIReader(new String[]
 						{
 								"-h", "badaddress", "::1", "-p", "22", "23",
-						}), false, false, false, false, 2, 1, 0, 1
+						}), false, false, false, false,false, false,false,2, 1, 0, 1,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{40,
 						new CLIReader(new String[]
 						{
 								"-h", "badaddress", "::1", "-p", "22", "23", "-?"
-						}), false, true, false, false, 0, 0, 0, 0
+						}), false, true, false, false, false,false,false,0, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{41,
 						new CLIReader(new String[]
 						{
 								"22", "23", "-?"
-						}), false, true, false, false, 0, 0, 0, 0
+						}), false, true, false, false, false,false,false,0, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{42,
 						new CLIReader(new String[]
 						{
 								"-?", "22", "23"
-						}), false, true, false, false, 0, 0, 0, 0
+						}), false, true, false, false, false,false,false,0, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
 				},
-				{
+				{43,
 						new CLIReader(new String[]
 						{
 								"-?"
-						}), false, true, false, false, 0, 0, 0, 0
+						}), false, true, false, false, false,false,false,0, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
+				},
+				{40,
+						new CLIReader(new String[]
+						{
+								"-q"
+						}), false, false, false, false, false ,true, false,0, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
+				},
+				{44,
+						new CLIReader(new String[]
+						{
+								"-q", "-q"
+						}), false, false, false, false, false,true,false,0, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
+				},
+				{45,
+						new CLIReader(new String[]
+						{
+								"-l"
+						}), false, false, false, false, true, false, false,0, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
+				},
+				{46,
+						new CLIReader(new String[]
+						{
+								"-l", "-l"
+						}), false, false, false, false, true, false, false,0, 0, 0, 0,CLIReader.CONNECTS_DEFAULT,null
+				},
+				{47,
+						new CLIReader(new String[]
+						{
+								"-l", "-q"
+						}), false, false, false, false, true, true, false,0, 0, 0, 0, CLIReader.CONNECTS_DEFAULT, null
+				},
+				{48,
+						new CLIReader(new String[]
+						{
+							"-l", "-q", "-h", "localhost", "-p", "80"
+						}), true, false, true, true, true, true, false, 1, 0, 1, 0, CLIReader.CONNECTS_DEFAULT, null
+				},
+				{49,
+						new CLIReader(new String[]
+						{
+							"-l", "-j", "-h", "localhost", "-p", "80"
+						}), true, false, true, true, true, false, true, 1, 0, 1, 0, CLIReader.CONNECTS_DEFAULT, null
+				},
+				{50,
+						new CLIReader(new String[]
+						{
+							"-l", "-a", "-j", "-h", "localhost", "-p", "80"
+						}), false, false, false, false, true, false, true, 1, 0, 1, 0, CLIReader.CONNECTS_DEFAULT, null
+				},
+				{51,
+						new CLIReader(new String[]
+						{
+							"-l", "-j", "-h", "localhost", "-p", "80", "-a", "0"
+						}), false, false, false, false, true, false, true, 1, 0, 1, 0, CLIReader.CONNECTS_DEFAULT, null
+				},
+				{52,
+						new CLIReader(new String[]
+						{
+							"-l", "-j", "-h", "localhost", "-p", "80", "-a", "100"
+						}), false, false, false, false, true, false, true, 1, 0, 1, 0, CLIReader.CONNECTS_DEFAULT, null
+				},
+				{53,
+						new CLIReader(new String[]
+						{
+							"-l", "-j", "-h", "localhost", "-p", "80", "-a", "-10"
+						}), false, false, false, false, true, false, true, 1, 0, 1, 0, CLIReader.CONNECTS_DEFAULT, null
+				},
+				{54,
+						new CLIReader(new String[]
+						{
+							"-l", "-j", "-h", "localhost", "-p", "80", "-a", "64"
+						}), true, false, true, true, true, false, true, 1, 0, 1, 0, 64, null
+				},
+				{55,
+						new CLIReader(new String[]
+						{
+							"-l", "-j", "-q", "-h", "localhost", "-p", "80", "-a", "32"
+						}), true, false, true, true, true, true, true, 1, 0, 1, 0, 32, null
+				},
+				{60,
+						new CLIReader(new String[]
+						{
+							"-l", "-j", "-h", "localhost", "-p", "80", "-u"
+						}), true, false, true, true, true, false, true, 1, 0, 1, 0, CLIReader.CONNECTS_DEFAULT, null
+				},
+				{61,
+						new CLIReader(new String[]
+						{
+							"-l", "-j", "-h", "localhost", "-p", "80", "-u", "-u"
+						}), false, false, false, false, true, false, true, 1, 0, 1, 0, CLIReader.CONNECTS_DEFAULT, null
+				},
+				{62,
+						new CLIReader(new String[]
+						{
+							"-l", "-j", "-h", "localhost", "-p", "80", "-u", "abc"
+						}), false, false, false, false, true, false, true, 1, 0, 1, 0, CLIReader.CONNECTS_DEFAULT, null
+				},
+				{63,
+						new CLIReader(new String[]
+						{
+							"-l", "-j", "-h", "localhost", "-p", "80", "-u", "abc"
+						}), false, false, false, false, true, false, true, 1, 0, 1, 0, CLIReader.CONNECTS_DEFAULT, null
+				},
+				{63,
+						new CLIReader(new String[]
+						{
+							"-l", "-j", "-h", "localhost", "-p", "80", "-u", URL_ADDR_GOOD
+						}), true, false, true, true, true, false, true, 1, 0, 1, 0, CLIReader.CONNECTS_DEFAULT, URL_GOOD 
 				},
 		};
-
-	}
+	} // dataMethod 
 
 
 	@Test ( dataProvider = "dataMethod" )
-	public void cliReaderTest (
-			CLIReader clireader, boolean valid, boolean help, boolean ipv4, boolean ipv6, int ports, int hosts,
-			int ipv4s, int ipv6s
-	)
+	public void cliReaderTest (int testno,
+			CLIReader clireader, 
+			boolean valid, boolean help, boolean ipv4, boolean ipv6, boolean local, boolean quiet, boolean json, 
+			int ports, int hosts, int ipv4s, int ipv6s, int attempts, 
+			URL url
+	) throws IOException
 	{
 		System.out.print(clireader.getFeedback());
-		assertEquals(clireader.isValid(), valid, "Validity flag");
-		assertEquals(clireader.wantHelp(), help, "Help flag");
-		assertEquals(clireader.isIPv4Target(), ipv4, "IPv4 flag");
-		assertEquals(clireader.isIPv6Target(), ipv6, "IPv6 flag");
-		assertEquals(clireader.getPorts().size(), ports, "Port count mismatch");
-		assertEquals(clireader.getBadHosts().size(), hosts, "Bad Host Name count mismatch");
-		assertEquals(clireader.getIPv4Addresses().size(), ipv4s, "IPv4 Address count mismatch");
-		assertEquals(clireader.getIPv6Addresses().size(), ipv6s, "IPv6 Address count mismatch");
-
+		assertEquals(clireader.isValid(), valid, testno+": Validity flag");
+		assertEquals(clireader.wantHelp(), help, testno+": Help flag");
+		assertEquals(clireader.isIPv4Target(), ipv4, testno+": IPv4 flag");
+		assertEquals(clireader.isIPv6Target(), ipv6, testno+": IPv6 flag");
+		assertEquals(clireader.isLocalIncluded (), local, testno+": Local flag");
+		assertEquals(clireader.isQuiet (), quiet, testno+": Quiet flag");
+		assertEquals(clireader.isJson (), json, testno+": JSON flag");
+		assertEquals(clireader.getPorts().size(), ports, testno+": Port count mismatch");
+		assertEquals(clireader.getBadHosts().size(), hosts, testno+": Bad Host Name count mismatch");
+		assertEquals(clireader.getIPv4Addresses().size(), ipv4s, testno+": IPv4 Address count mismatch");
+		assertEquals(clireader.getIPv6Addresses().size(), ipv6s, testno+": IPv6 Address count mismatch");
+		assertEquals(clireader.getAttempts(), attempts, testno+": Attempts mismatch");
+		if ( url == null )
+		{
+			assertEquals( clireader.getHttpUrlConnection(), null, testno+": URL mismatch");
+		}
+		else
+		{
+			assertEquals( clireader.getHttpUrlConnection().getURL(), url , testno+": URL mismatch");
+		}
 	}
-
 }
