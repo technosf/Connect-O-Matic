@@ -55,7 +55,7 @@ public class CLIReader
 
   
 // @formatter:off
-	private static final String			HELP_LEGEND		= "Help:" 
+	private static final String			HELP_LEGEND		= "Copyright 2023  technosf  [http://github.com/technosf]\n\nHelp:" 
 														+ "\n\t-i\tIPv - 4 and/or 6, defaults to 4 and 6 if absent" 	
 														+ "\n\t-p\tPort numbers, at least one required, can be a hyphenated range" 	
 														+ "\n\t-h\tHosts as hostnames, IPv4 or IPv6 addresses, at least one required"
@@ -70,14 +70,13 @@ public class CLIReader
 														+ "\n\tjava -jar connectomatic-*.*.*.jar -p 80-90 -h github.com www.github.com localhost -l"
 														+ "\n\tjava -jar connectomatic-*.*.*.jar -i 4,6 -p 22,80-90 -h github.com,www.github.com" 	
 														+ "\n\tjava -jar connectomatic-*.*.*.jar -j -i 4,6 -p 22,80-90 -h github.com,www.github.com" 	
-														+ "\n\tjava -jar connectomatic-*.*.*.jar -a 1 -u http://myobjectdb/index -i 6 -p 22,80-90 -h github.com,www.github.com\n\n" 	
-														+ "\nCopyright 2023  technosf  [http://github.com/technosf]\n\n";	
+														+ "\n\tjava -jar connectomatic-*.*.*.jar -a 1 -u http://myobjectdb/index -i 6 -p 22,80-90 -h github.com,www.github.com\n\n";	
 // @formatter:on
 
-	private Set<ArgTypeEnum>			usedFlags 		= new HashSet<>();
 	private boolean						help, valid, IPv4Target, IPv6Target, local, json, quiet;
-	private Map< Inet4Address, String >	IPv4Addresses	= new HashMap<>();
-	private Map< Inet6Address, String >	IPv6Addresses	= new HashMap<>();
+	private Set<ArgTypeEnum>			usedFlags 		= new HashSet<>();
+	private Map< Inet4Address, String >	ipV4Addresses	= new HashMap<>();
+	private Map< Inet6Address, String >	ipV6Addresses	= new HashMap<>();
 	private Set< String >				badHosts		= new HashSet<>();
 	private Set< Integer >				ports			= new HashSet<>();
 	private int							attempts		= CONNECTS_DEFAULT;
@@ -98,7 +97,7 @@ public class CLIReader
 	 * @param args
 	 *                 from the CLI
 	 */
-	CLIReader ( String[] args )
+	CLIReader ( Set< String > localAddresses, String[] args )
 	{
 		ArgTypeEnum currentState = ArgTypeEnum.NOT_A_FLAG; // The current state arg type
 		
@@ -116,8 +115,8 @@ public class CLIReader
 				help = true;
 				feedback.setLength(0);
 				feedback.append(HELP_LEGEND);
-				IPv4Addresses.clear();
-				IPv6Addresses.clear();
+				ipV4Addresses.clear();
+				ipV6Addresses.clear();
 				badHosts.clear();
 				ports.clear();
 				return;
@@ -203,7 +202,7 @@ public class CLIReader
 		/*
 		 * Check CLI validity
 		 */
-		if ( IPv4Addresses.isEmpty() && IPv6Addresses.isEmpty() )
+		if ( ipV4Addresses.isEmpty() && ipV6Addresses.isEmpty() )
 		{
 			feedback.append("No valid addresses or host specified.\n");
 		} // if
@@ -229,8 +228,15 @@ public class CLIReader
 			IPv6Target	= true;
 		} // if
 
-		IPv4Addresses	= Collections.unmodifiableMap(IPv4Addresses);
-		IPv6Addresses	= Collections.unmodifiableMap(IPv6Addresses);
+		if ( !local )
+		// Scrub local addresses from lists
+		{
+			ipV4Addresses.entrySet().removeIf(e -> localAddresses.contains(e.getValue()));
+			ipV6Addresses.entrySet().removeIf(e -> localAddresses.contains(e.getValue()));
+		}
+
+		ipV4Addresses	= Collections.unmodifiableMap(ipV4Addresses);
+		ipV6Addresses	= Collections.unmodifiableMap(ipV6Addresses);
 		ports			= Collections.unmodifiableSet(ports);
 		badHosts		= Collections.unmodifiableSet(badHosts);
 
@@ -331,9 +337,9 @@ public class CLIReader
 	 * 
 	 * @return requested IPv4 addresses
 	 */
-	public Set< Inet4Address > getIPv4Addresses ()
+	public Set< Inet4Address > getIpV4Addresses ()
 	{
-		return IPv4Addresses.keySet();
+		return ipV4Addresses.keySet();
 	} // getIPv4Addresses
 
 
@@ -342,9 +348,9 @@ public class CLIReader
 	 * 
 	 * @return requested IPv6 addresses
 	 */
-	public Set< Inet6Address > getIPv6Addresses ()
+	public Set< Inet6Address > getIpV6Addresses ()
 	{
-		return IPv6Addresses.keySet();
+		return ipV6Addresses.keySet();
 	} // getIPv6Addresses
 
 
@@ -479,11 +485,11 @@ public class CLIReader
 			{
 				if ( address instanceof Inet4Address )
 				{
-					IPv4Addresses.put((Inet4Address) address, splitarg);
+					ipV4Addresses.put((Inet4Address) address, splitarg);
 				} // if
 				else if ( address instanceof Inet6Address )
 				{
-					IPv6Addresses.put((Inet6Address) address, splitarg);
+					ipV6Addresses.put((Inet6Address) address, splitarg);
 				} // else if
 				else
 				{

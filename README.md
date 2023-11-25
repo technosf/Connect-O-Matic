@@ -24,21 +24,25 @@ technosf@github:connectomatic~$ java -jar target/connectomatic-1.2.0.jar -?
 
 Connect-O-Matic		Version: 1.2.0
 
+	Copyright 2023  technosf  [http://github.com/technosf]
+
 Help:
 	-i	IPv - 4 and/or 6, defaults to 4 and 6 if absent
-	-p	Port numbers, at least one required
+	-p	Port numbers, at least one required, can be a hyphenated range
 	-h	Hosts as hostnames, IPv4 or IPv6 addresses, at least one required
-	-a  Attempts to connect, defaults to 5, but can be 1-64
-	-l  Local addresses in the host set should be tested and not ignored
-	-j  Produce JSON output instead of CSV
-	-u  URI, POST JSON results to the provided URI
-	-q  Quiet mode, outputs result only, without preamble or summary
+	-a	Attempts to connect, defaults to 5, but can be 1-255
+	-l	Local addresses in the host set should be tested and not ignored
+	-j	Produce JSON output instead of CSV
+	-u	URI, POST JSON results to the provided URI
+	-q	Quiet mode, outputs result only, without preamble or summary
 	-?	Produces this message
 
 Examples:
 	java -jar connectomatic-*.*.*.jar -p 22 80 -h github.com www.github.com
-	java -jar connectomatic-*.*.*.jar -i 4,6 -p 80-90 -h github.com,www.github.com
-	java -jar connectomatic-*.*.*.jar -i 4,6 -p 22,80 -h github.com,www.github.com
+	java -jar connectomatic-*.*.*.jar -p 80-90 -h github.com www.github.com localhost -l
+	java -jar connectomatic-*.*.*.jar -i 4,6 -p 22,80-90 -h github.com,www.github.com
+	java -jar connectomatic-*.*.*.jar -j -i 4,6 -p 22,80-90 -h github.com,www.github.com
+	java -jar connectomatic-*.*.*.jar -a 1 -u http://myobjectdb/index -i 6 -p 22,80-90 -h github.com,www.github.com
 
 Output by default is .csv, with header, or JSON via a switch. Fields are:
 	• IPv
@@ -48,11 +52,12 @@ Output by default is .csv, with header, or JSON via a switch. Fields are:
 	• Remote Port
 	• Connections
 	• Connection μs Avg
+	• Connection μs Min
+	• Connection μs Max
 	• Timeouts
 	• Timeout μs Avg
 	• Refused connection count
 	• Unreachable network count
-
 ```
 	
 

@@ -75,12 +75,13 @@ public class LocalInterface
 	};
 
 
-	private Map< Inet4Address, Tuple< String, String > >	IPv4Addresses	= new HashMap<>();
-	private Map< Inet6Address, Tuple< String, String > >	IPv6Addresses	= new HashMap<>();
-	private Set< Tuple< String, String > >					IPv4Loopback	= new HashSet<>();
-	private Set< Tuple< String, String > >					IPv6Loopback	= new HashSet<>();
-	private Set< Tuple< String, String > >					IPv6LinkLocal	= new HashSet<>();
-	private Set< Tuple< String, String > >					Interfaces		= new HashSet<>();
+	private Map< Inet4Address, Tuple< String, String > >	ipV4Addresses	= new HashMap<>();
+	private Map< Inet6Address, Tuple< String, String > >	ipV6Addresses	= new HashMap<>();
+	private Set< Tuple< String, String > >					ipV4Loopback	= new HashSet<>();
+	private Set< Tuple< String, String > >					ipV6Loopback	= new HashSet<>();
+	private Set< Tuple< String, String > >					ipV6LinkLocal	= new HashSet<>();
+	private Set< Tuple< String, String > >					interfaces		= new HashSet<>();
+	private Set< String >									localAddresses	= new HashSet<>();
 	private String											digest;
 	private boolean											valid;
 
@@ -102,64 +103,65 @@ public class LocalInterface
 			return;
 		}
 
-		IPv4Addresses	= Collections.unmodifiableMap(IPv4Addresses);
-		IPv6Addresses	= Collections.unmodifiableMap(IPv6Addresses);
-		IPv4Loopback	= Collections.unmodifiableSet(IPv4Loopback);
-		IPv6Loopback	= Collections.unmodifiableSet(IPv6Loopback);
-		IPv6LinkLocal	= Collections.unmodifiableSet(IPv6LinkLocal);
-		Interfaces		= Collections.unmodifiableSet(Interfaces);
+		ipV4Addresses	= Collections.unmodifiableMap(ipV4Addresses);
+		ipV6Addresses	= Collections.unmodifiableMap(ipV6Addresses);
+		ipV4Loopback	= Collections.unmodifiableSet(ipV4Loopback);
+		ipV6Loopback	= Collections.unmodifiableSet(ipV6Loopback);
+		ipV6LinkLocal	= Collections.unmodifiableSet(ipV6LinkLocal);
+		interfaces		= Collections.unmodifiableSet(interfaces);
+		localAddresses	= Collections.unmodifiableSet(localAddresses);
 
 		StringBuilder sb = new StringBuilder("Local Interfaces: ")
 				.append(DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now())).append("\n\nInterfaces:");
 
-		Interfaces.forEach(i ->
+		interfaces.forEach(i ->
 		{
-			sb.append("\n\t\t").append(i.primary).append("\t").append(i.secondary);
+			sb.append("\n\t\t").append(i.primary).append("\t\t\t").append(i.secondary);
 		});
 
 		sb.append("\n\nLoopback Addresses:");
-		if ( !IPv4Loopback.isEmpty() )
+		if ( !ipV4Loopback.isEmpty() )
 		{
 			sb.append("\n\tIPv4");
-			IPv4Loopback.forEach(i ->
+			ipV4Loopback.forEach(i ->
 			{
-				sb.append("\n\t\t").append(i.primary).append("\t").append(i.secondary);
+				sb.append("\n\t\t").append(i.primary).append("\t\t\t").append(i.secondary);
 			});
 		} // if
 
-		if ( !IPv6Loopback.isEmpty() )
+		if ( !ipV6Loopback.isEmpty() )
 		{
 			sb.append("\n\tIPv6");
-			IPv6Loopback.forEach(i ->
+			ipV6Loopback.forEach(i ->
 			{
-				sb.append("\n\t\t").append(i.primary).append("\t").append(i.secondary);
+				sb.append("\n\t\t").append(i.primary).append("\t\t\t").append(i.secondary);
 			});
 		} // if
 
-		if ( !IPv6LinkLocal.isEmpty() )
+		if ( !ipV6LinkLocal.isEmpty() )
 		{
 			sb.append("\n\nLinkLocal Addresses IPv6:");
-			IPv6LinkLocal.forEach(i ->
+			ipV6LinkLocal.forEach(i ->
 			{
-				sb.append("\n\t\t").append(i.primary).append("\t").append(i.secondary);
+				sb.append("\n\t\t").append(i.primary).append("\t\t\t").append(i.secondary);
 			});
 		} // if
 
-		if ( !IPv4Addresses.isEmpty() )
+		if ( !ipV4Addresses.isEmpty() )
 		{
 			sb.append("\n\nIPv4 Addresses:");
-			IPv4Addresses.forEach( ( i, j ) ->
+			ipV4Addresses.forEach( ( i, j ) ->
 			{
-				sb.append("\n\t\t").append(j.primary).append("\t").append(j.secondary);
+				sb.append("\n\t\t").append(j.primary).append("\t\t\t").append(j.secondary);
 			});
 		} // if
 
-		if ( !IPv6Addresses.isEmpty() )
+		if ( !ipV6Addresses.isEmpty() )
 		{
 			sb.append("\n\nIPv6 Addresses:");
-			IPv6Addresses.forEach( ( i, j ) ->
+			ipV6Addresses.forEach( ( i, j ) ->
 			{
-				sb.append("\n\t\t").append(j.primary).append("\t").append(j.secondary);
+				sb.append("\n\t\t").append(j.primary).append("\t\t").append(j.secondary);
 			});
 		} // if
 
@@ -201,46 +203,47 @@ public class LocalInterface
 	 * 
 	 * @throws SocketException
 	 */
-	private void collateLocalInterfaces () throws SocketException
+	private void collateLocalInterfaces () 
+		throws SocketException
 	{
 		for ( NetworkInterface nif : Collections.list(NetworkInterface.getNetworkInterfaces()) )
 		{
-
-			Interfaces.add(
+			interfaces.add(
 					new Tuple<>(String.format("%-32s", nif.getDisplayName()), stringMAC(nif.getHardwareAddress()))
 			);
 
-			for ( InterfaceAddress infaddr : nif.getInterfaceAddresses() )
+			for ( InterfaceAddress ifAddr : nif.getInterfaceAddresses() )
 			{
-				InetAddress				ia		= infaddr.getAddress();
+				InetAddress				ia		= ifAddr.getAddress();
+				localAddresses.add( ia.getHostAddress().split("%")[0] );
 				Tuple< String, String >	addr	= new Tuple<>(
-						String.format("%-32s", ia.getHostName()), ia.getHostAddress()
+						String.format("%-32s", ia.getHostName()), ia.getHostAddress().split("%")[0]
 				);
 
 				if ( ia instanceof Inet4Address )
 				{
 					if ( ia.isLoopbackAddress() )
 					{
-						IPv4Loopback.add(addr);
+						ipV4Loopback.add(addr);
 					} // if
 					else
 					{
-						IPv4Addresses.put((Inet4Address) ia, addr);
+						ipV4Addresses.put((Inet4Address) ia, addr);
 					} // else
 				} // if
 				else if ( ia instanceof Inet6Address )
 				{
 					if ( ia.isLoopbackAddress() )
 					{
-						IPv6Loopback.add(addr);
+						ipV6Loopback.add(addr);
 					} // if
 					else if ( ia.isLinkLocalAddress() )
 					{
-						IPv6LinkLocal.add(addr);
+						ipV6LinkLocal.add(addr);
 					} // else if
 					else
 					{
-						IPv6Addresses.put((Inet6Address) ia, addr);
+						ipV6Addresses.put((Inet6Address) ia, addr);
 					} // else
 				} // else if
 				else
@@ -257,9 +260,9 @@ public class LocalInterface
 	 * 
 	 * @return the iPv4Addresses
 	 */
-	public Map< Inet4Address, Tuple< String, String > > getIPv4Addresses ()
+	public Map< Inet4Address, Tuple< String, String > > getIpV4Addresses ()
 	{
-		return IPv4Addresses;
+		return ipV4Addresses;
 	}
 
 
@@ -268,9 +271,9 @@ public class LocalInterface
 	 * 
 	 * @return the iPv6Addresses
 	 */
-	public Map< Inet6Address, Tuple< String, String > > getIPv6Addresses ()
+	public Map< Inet6Address, Tuple< String, String > > getIpV6Addresses ()
 	{
-		return IPv6Addresses;
+		return ipV6Addresses;
 	}
 
 
@@ -279,9 +282,9 @@ public class LocalInterface
 	 * 
 	 * @return the iPv4Loopback
 	 */
-	public Set< Tuple< String, String > > getIPv4Loopback ()
+	public Set< Tuple< String, String > > getIpV4Loopback ()
 	{
-		return IPv4Loopback;
+		return ipV4Loopback;
 	}
 
 
@@ -290,9 +293,9 @@ public class LocalInterface
 	 * 
 	 * @return the iPv6Loopback
 	 */
-	public Set< Tuple< String, String > > getIPv6Loopback ()
+	public Set< Tuple< String, String > > getIpV6Loopback ()
 	{
-		return IPv6Loopback;
+		return ipV6Loopback;
 	}
 
 
@@ -301,9 +304,9 @@ public class LocalInterface
 	 * 
 	 * @return the iPv6LinkLocal
 	 */
-	public Set< Tuple< String, String > > getIPv6LinkLocal ()
+	public Set< Tuple< String, String > > getIpV6LinkLocal ()
 	{
-		return IPv6LinkLocal;
+		return ipV6LinkLocal;
 	}
 
 
@@ -314,7 +317,18 @@ public class LocalInterface
 	 */
 	public Set< Tuple< String, String > > getInterfaces ()
 	{
-		return Interfaces;
+		return interfaces;
+	}
+
+
+	/**
+	 * All local addresses
+	 * 
+	 * @return the local addresses
+	 */
+	public Set< String > getLocalAddresses ()
+	{
+		return localAddresses;
 	}
 
 

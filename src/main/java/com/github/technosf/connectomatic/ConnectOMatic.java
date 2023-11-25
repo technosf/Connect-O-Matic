@@ -50,7 +50,7 @@ public class ConnectOMatic
 	private static CLIReader		clireader;
 
 	private static final String		CONST_FORMAT_HELP	
-			= "Output by default is .csv, with header, or JSON via a switch. Fields are:"
+			= "Output by default is .csv with header - JSON via a switch.\nFields are:"
 			+ "\n\t• IPv\n\t• Local Interface\n\t• Remote Address\n\t• Remote Hostname\n\t• Remote Port"
 			+ "\n\t• Connections\n\t• Connection μs Avg\n\t• Connection μs Min\n\t• Connection μs Max\n\t• Timeouts\n\t• Timeout μs Avg"
 			+ "\n\t• Refused connection count\n\t• Unreachable network count\n";
@@ -86,7 +86,7 @@ public class ConnectOMatic
 			System.exit(0);
 		}
 
-		clireader = new CLIReader(args);
+		clireader = new CLIReader(localInterface.getLocalAddresses(), args);
 
 		if ( clireader.wantHelp() )
 		/*
@@ -129,9 +129,9 @@ public class ConnectOMatic
 			 * Process IPv4 hosts connections
 			 */
 			{
-				for ( Inet4Address localif : localInterface.getIPv4Addresses().keySet() )
+				for ( Inet4Address localif : localInterface.getIpV4Addresses().keySet() )
 				{
-					clireader.getIPv4Addresses()
+					clireader.getIpV4Addresses()
 							.forEach(remoteaddr -> ConnectionTask.submit( clireader.isJson(), localif, remoteaddr, port, 5));
 				}
 			} // for ipv4
@@ -141,9 +141,9 @@ public class ConnectOMatic
 			 * Process IPv6 hosts connections
 			 */
 			{
-				for ( Inet6Address localif : localInterface.getIPv6Addresses().keySet() )
+				for ( Inet6Address localif : localInterface.getIpV6Addresses().keySet() )
 				{
-					clireader.getIPv6Addresses()
+					clireader.getIpV6Addresses()
 							.forEach(remoteaddr -> ConnectionTask.submit( clireader.isJson(), localif, remoteaddr, port, 5));
 				}
 			} // for ipv6
