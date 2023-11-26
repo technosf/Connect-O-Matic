@@ -42,6 +42,7 @@ public enum ArgTypeEnum
 	, JSON ( "j" )
 	, URI ( "u", true )
 	, QUIET ( "q" )
+	, DRY ( "d" )
 	, UNKNOWN ( null )
 	, NOT_A_FLAG ( null );
 

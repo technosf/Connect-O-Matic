@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 /**
  * Reads CLI arguments and generates the configuration objects
  * <p>
@@ -64,6 +65,7 @@ public class CLIReader
 														+ "\n\t-j\tProduce JSON output instead of CSV"
 														+ "\n\t-u\tURI, POST JSON results to the provided URI"
 														+ "\n\t-q\tQuiet mode, outputs result only, without preamble or summary"
+														+ "\n\t-d\tDry-run, run through resolving the targets without attempting any connects"
 														+ "\n\t-?\tProduces this message" 
 														+ "\n\nExamples:"
 														+ "\n\tjava -jar connectomatic-*.*.*.jar -p 22 80 -h github.com www.github.com"
@@ -73,7 +75,7 @@ public class CLIReader
 														+ "\n\tjava -jar connectomatic-*.*.*.jar -a 1 -u http://myobjectdb/index -i 6 -p 22,80-90 -h github.com,www.github.com\n\n";	
 // @formatter:on
 
-	private boolean						help, valid, IPv4Target, IPv6Target, local, json, quiet;
+	private boolean						help, valid, IPv4Target, IPv6Target, local, json, quiet, dry;
 	private Set<ArgTypeEnum>			usedFlags 		= new HashSet<>();
 	private Map< Inet4Address, String >	ipV4Addresses	= new HashMap<>();
 	private Map< Inet6Address, String >	ipV6Addresses	= new HashMap<>();
@@ -149,6 +151,9 @@ public class CLIReader
 						continue;
 					case QUIET:
 						quiet	= true;
+						continue;
+					case DRY:
+						dry	= true;
 						continue;
 					default:
 						continue;
@@ -235,6 +240,7 @@ public class CLIReader
 			ipV6Addresses.entrySet().removeIf(e -> localAddresses.contains(e.getValue()));
 		}
 
+		attempts		= dry ? 0 : attempts;
 		ipV4Addresses	= Collections.unmodifiableMap(ipV4Addresses);
 		ipV6Addresses	= Collections.unmodifiableMap(ipV6Addresses);
 		ports			= Collections.unmodifiableSet(ports);
@@ -386,6 +392,7 @@ public class CLIReader
 		return attempts;
 	} // getAttempts
 
+	
 	/**
 	 * Get the Http URL Connection to POST JSON results to
 	 * Return NULL is no URL was provided in the parameters.
