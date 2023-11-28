@@ -51,14 +51,12 @@ public class ConnectionTask implements Callable< ConnectionResult >
 {
 
 	private static final CompletionService< ConnectionResult >	CONNPOOL	
-		= new ExecutorCompletionService< ConnectionResult >(
+		= new ExecutorCompletionService< >(
 			Executors.newCachedThreadPool()
 		);
 
 	private static final Object		LOCK	= new Object();
 	private static int				futures;
-	// private static ConnectionTask z = new ConnectionTask();
-
 
 	private ConnectionResult		result;
 	private int						port;
@@ -91,7 +89,7 @@ public class ConnectionTask implements Callable< ConnectionResult >
 	private ConnectionTask ( boolean json, String ipv, InetAddress localaddress, InetAddress remoteaddress, int port, int pingcount )
 	{
 		super();
-		result					= new ConnectionResult( json, ipv, localaddress, remoteaddress, port, pingcount );
+		result					= new ConnectionResult( json, ipv, localaddress, remoteaddress, port); 
 		this.port				= port;
 		this.pingcount			= pingcount;
 		this.localaddress		= localaddress;
@@ -177,13 +175,11 @@ public class ConnectionTask implements Callable< ConnectionResult >
 		synchronized ( LOCK )
 		{
 			Map< String, ConnectionResult > results = new TreeMap<>();
-			while ( futures > 0 )
+			while ( futures-- > 0 )
 			{
-				futures--;
-				ConnectionResult result = null;
 				try
 				{
-					result = CONNPOOL.take().get();
+					ConnectionResult result = CONNPOOL.take().get();
 					results.put(result.toString(), result);
 				}
 				catch ( NullPointerException e )
@@ -237,7 +233,7 @@ public class ConnectionTask implements Callable< ConnectionResult >
 				try
 				// Attempt connection
 				{
-					nanotime = 0 - System.nanoTime();
+					nanotime = 0f - System.nanoTime();
 					socket.connect(remote);
 					nanotime += System.nanoTime();
 
@@ -256,7 +252,6 @@ public class ConnectionTask implements Callable< ConnectionResult >
 				 */
 				{
 					result.refused++;
-					continue;
 				}
 				catch ( SocketException e )
 				/*
@@ -264,7 +259,6 @@ public class ConnectionTask implements Callable< ConnectionResult >
 				 */
 				{
 					result.unreachable++;
-					continue;
 				}
 				catch ( Exception e )
 				{

@@ -17,11 +17,13 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
- package com.github.technosf.connectomatic;
+package com.github.technosf.connectomatic;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.eclipse.jdt.annotation.NonNull;
 
 /**
  * Connection Result POJO
@@ -38,9 +40,9 @@ import java.util.List;
 public class ConnectionResult
 {
 
-	public final static String	CSV_HEADER	= "\"IPv\",\"Interface\",\"Remote Address\",\"Remote Hostname\",\"Remote Port\",\"Connections\",\"Connection μs Avg\",\"Connection μs Min\",\"Connection μs Max\",\"Timeouts\",\"Timeout μs Avg\",\"Refused\",\"Unreachable\"";
-	public final static String	JSON_1_FORMAT	= "\"IPv\":%d,\"Interface\":\"%s\",\"Remote Address\":\"%s\",\"Remote Hostname\":\"%s\",\"Remote Port\":%d,";
-	public final static String	JSON_2_FORMAT	= "\"Connection μs Min\":%f,\"Connection μs Max\":%f,\"Timeouts\":%d,\"Timeout μs Avg\":%f,\"Refused\":%d,\"Unreachable\":%d";
+	public static final String	CSV_HEADER		= "\"IPv\",\"Interface\",\"Remote Address\",\"Remote Hostname\",\"Remote Port\",\"Connections\",\"Connection μs Avg\",\"Connection μs Min\",\"Connection μs Max\",\"Timeouts\",\"Timeout μs Avg\",\"Refused\",\"Unreachable\"";
+	private static final String	JSON_1_FORMAT	= "{\"IPv\":\"%s\",\"Interface\":\"%s\",\"Remote Address\":\"%s\",\"Remote Hostname\":\"%s\",\"Remote Port\":%s";
+	private static final String	JSON_2_FORMAT	= ",\"Connections\":%d,\"Connection μs Avg\":%f,\"Connection μs Min\":%f,\"Connection μs Max\":%f,\"Timeouts\":%d,\"Timeout μs Avg\":%f,\"Refused\":%d,\"Unreachable\":%d}";
 
 
 	private String				result;
@@ -70,13 +72,13 @@ public class ConnectionResult
 	 * @param port
 	 *                          the remote port
 	 * @param pingcount
-	 *                          times connection attempts are to made
+	 *                          times connection attempts are to made, used to preallocate result array
 	 */
-	ConnectionResult ( boolean json, String ipv, InetAddress localaddress, InetAddress remoteaddress, int port, int pingcount )
+	ConnectionResult ( boolean json, @NonNull String ipv, @NonNull InetAddress localaddress, @NonNull InetAddress remoteaddress, int port)//, int pingcount )
 	{
 		this.json 		= json;
-		connects_millis	= new ArrayList< Float >(pingcount);
-		timeouts_millis	= new ArrayList< Float >(pingcount);
+		connects_millis	= new ArrayList< >();
+		timeouts_millis	= new ArrayList< >();
 
 
 		if (json)

@@ -45,9 +45,8 @@ import java.util.jar.Manifest;
  */
 public class ConnectOMatic
 {
-
-	private static LocalInterface	localInterface;
-	private static CLIReader		clireader;
+	private static final String		CONST_FORMAT_DRYRUN
+			= "==> Dry Run\n";
 
 	private static final String		CONST_FORMAT_HELP	
 			= "Output by default is .csv with header - JSON via a switch.\nFields are:"
@@ -56,6 +55,10 @@ public class ConnectOMatic
 			+ "\n\t• Refused connection count\n\t• Unreachable network count\n";
 
 
+	private static LocalInterface	localInterface;
+	private static CLIReader		clireader;
+	private static StringBuilder 	data = new StringBuilder();
+	
 	/**
 	 * Entry point for the executable .jar
 	 * <p>
@@ -65,7 +68,6 @@ public class ConnectOMatic
 	 */
 	public static void main ( String[] args )
 	{
-
 		System.out.println("\nConnect-O-Matic\t\tVersion: " + getVersion() + "\n");
 
 		localInterface = new LocalInterface();
@@ -109,6 +111,12 @@ public class ConnectOMatic
 			System.exit(1);
 		}
 
+		if ( clireader.isDryrun() )
+		{
+			System.out.println(CONST_FORMAT_DRYRUN);
+		}
+
+		queueConnections();
 		System.out.println(tryConnections());
 		System.exit(0);
 
@@ -116,11 +124,10 @@ public class ConnectOMatic
 
 
 	/**
-	 * Run through and try all connections
+	 * Contruct all connection attempts
 	 * 
-	 * @return the connection try results
 	 */
-	private static String tryConnections ()
+	private static void queueConnections ()  
 	{
 		for ( int port : clireader.getPorts() )
 		{
@@ -132,7 +139,7 @@ public class ConnectOMatic
 				for ( Inet4Address localif : localInterface.getIpV4Addresses().keySet() )
 				{
 					clireader.getIpV4Addresses()
-							.forEach(remoteaddr -> ConnectionTask.submit( clireader.isJson(), localif, remoteaddr, port, 5));
+							.forEach(remoteaddr -> ConnectionTask.submit( clireader.isJson(), localif, remoteaddr, port, clireader.getAttempts()));
 				}
 			} // for ipv4
 
@@ -144,26 +151,40 @@ public class ConnectOMatic
 				for ( Inet6Address localif : localInterface.getIpV6Addresses().keySet() )
 				{
 					clireader.getIpV6Addresses()
-							.forEach(remoteaddr -> ConnectionTask.submit( clireader.isJson(), localif, remoteaddr, port, 5));
+							.forEach(remoteaddr -> ConnectionTask.submit( clireader.isJson(), localif, remoteaddr, port, clireader.getAttempts()));
 				}
 			} // for ipv6
 		} // for port
+	}
 
-
+	/**
+	 * Run through and retrieve all connection attempts
+	 * 
+	 * @return the connection try results
+	 */
+	private static String tryConnections ()  
+	{
 		int	connects = 0,timeouts = 0,refused = 0, unreachable = 0;
-
-		StringBuilder data = new StringBuilder(ConnectionResult.CSV_HEADER).append("\n");
+		boolean place = false;
 		
 		for ( ConnectionResult result : ConnectionTask.getResults().values() )
 		{
 			result.collate();
-			data.append(result.toString()).append("\n");
+			data.append( ( place && clireader.isJson() ) ? "," : "") 
+				.append(result.toString())
+				.append("\n");
 			connects += result.connects_millis.size();
 			timeouts += result.timeouts_millis.size();
 			refused += result.refused;
 			unreachable += result.unreachable;
+			place = true;
 		}
-		
+
+		if ( clireader.isJson() ) 
+		{
+			data.insert( 0, "[" );		
+			data.append("]");
+		}
 
 		if ( clireader.getHttpUrlConnection() != null )
 		// POSTing result to HTTP end-point
@@ -190,6 +211,12 @@ public class ConnectOMatic
 		// Not POSTing results to endpoint
 		StringBuilder header = new StringBuilder();
 
+
+		if ( !clireader.isJson() ) 
+		{
+			data.append(ConnectionResult.CSV_HEADER).append("\n");
+		}
+
 		if (!clireader.isQuiet())
 		{
 			header.append("\tSummary \tConnects: ").append(connects)
@@ -198,6 +225,7 @@ public class ConnectOMatic
 			.append(" \tUnreachable: ").append(unreachable)
 			.append("\n\n\n");
 		}
+
 
 		header.append(data);
 		
@@ -218,7 +246,9 @@ public class ConnectOMatic
 			version = manifest.getMainAttributes().getValue("Release");
 		}
 		catch ( Exception e )
-		{}
+		{
+			System.err.println(e.getMessage());
+		}
 		return version;
 	} // getVersion
 

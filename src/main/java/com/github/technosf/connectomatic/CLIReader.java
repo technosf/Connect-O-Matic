@@ -318,6 +318,17 @@ public class CLIReader
 
 
 	/**
+	 * Was dry run requested?
+	 * 
+	 * @return true for Dry run
+	 */
+	public boolean isDryrun ()
+	{
+		return dry;
+	} // isDryrun
+
+
+	/**
 	 * Was quiet output (no summary) requested?
 	 * 
 	 * @return true for Quiet
@@ -326,6 +337,7 @@ public class CLIReader
 	{
 		return quiet;
 	} // isQuiet
+
 
 	/**
 	 * Was JSON output (no CSV) requested?

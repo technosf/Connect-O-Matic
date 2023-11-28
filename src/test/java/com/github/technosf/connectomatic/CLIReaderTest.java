@@ -396,6 +396,12 @@ public class CLIReaderTest
 							"-l", "-j", "-h", "localhost", "-p", "80", "-u", URL_ADDR_GOOD
 						}), true, false, true, true, true, false, true, 1, 0, 1, 0, CLIReader.CONNECTS_DEFAULT, URL_GOOD 
 				},
+				{85,
+						new CLIReader(LOCALIPSET, new String[]
+						{
+							"-l", "-j", "-h", "localhost", "-p", "80", "-d", "-u", URL_ADDR_GOOD
+						}), true, false, true, true, true, false, true, 1, 0, 1, 0, 0, URL_GOOD 
+				},
 		};
 	} // dataMethod 
 
