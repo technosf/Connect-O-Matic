@@ -1,7 +1,7 @@
 /*
  * Connect-O-Matic - IP network connection tester [https://github.com/technosf/Connect-O-Matic]
  * 
- * Copyright 2020 technosf [https://github.com/technosf]
+ * Copyright 2023 technosf [https://github.com/technosf]
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,9 +25,6 @@ import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.URI;
 import java.net.URL;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.jar.Manifest;
 
@@ -193,18 +190,11 @@ public class ConnectOMatic
 		}
 
 		if ( clireader.getHttpUri() != null )
-		// POSTing result to HTTP end-point
+		// POSTing result to HTTP end-point and output the HTTP Status 
 		{
-			postToUri( clireader.getHttpUri(), data.toString() );
-			return null;
+			return Integer.toString(postToUri( clireader.getHttpUri(), data.toString() ));
 		}
 
-		// if ( clireader.getHttpUrlConnection() != null )
-		// // POSTing result to HTTP end-point
-		// {
-		// 	postToUrl( clireader.getHttpUrlConnection(), data.toString() );
-		// 	return null;
-		// }
 
 		// Not POSTing results to endpoint
 		StringBuilder header = new StringBuilder();
@@ -230,43 +220,58 @@ public class ConnectOMatic
 	} // main
 
 
-	protected static void postToUri( URI huri, String data ) 
+	/**
+	 * POST data using HTTP to the given URI
+	 * 
+	 * @param huri the http URI
+	 * @param data data to POST
+	 * @return HTTP Status code
+	 */
+	protected static int postToUri( URI huri, String data ) 
 	{
-		HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(huri)
-            .POST(HttpRequest.BodyPublishers.ofString(data))
-            .build();
-            try {
-				client.send(request, HttpResponse.BodyHandlers.discarding());
-			} catch (IOException | InterruptedException e) 
-			{				
-				System.out.println("Error POSTing results.\n");
-				e.printStackTrace();
-				System.exit(1);
-			} 
-	}
+		int status = HttpURLConnection.HTTP_NOT_IMPLEMENTED;
 
-	protected static void postToUrl( HttpURLConnection hurl, String data ) 
-	{
 		try {
-			hurl.setRequestMethod("POST");
+			HttpURLConnection hurl = (HttpURLConnection) huri.toURL().openConnection();	
 			hurl.setDoOutput(true);
+			hurl.setRequestMethod("POST");
 			hurl.setRequestProperty("Content-Type", "application/json");
-			hurl.setRequestProperty("Accept", "application/json");
 
 			try(OutputStream os = hurl.getOutputStream()) 
 			{
 				byte[] input = data.getBytes(StandardCharsets.UTF_8);
 				os.write(input, 0, input.length);
-			}			        
+			}		
+
+			status = hurl.getResponseCode();   
+
 		} catch (IOException e) 
 		{
 			System.out.println("Error POSTing results.\n");
 			e.printStackTrace();
 			System.exit(1);
 		}
+
+		return status;
+
+		/*
+		 * Java 11+ Connection code - for any future upgrade
+		 */
+		// HttpClient client = HttpClient.newHttpClient();
+        // HttpRequest request = HttpRequest.newBuilder()
+        //     .uri(huri)
+        //     .POST(HttpRequest.BodyPublishers.ofString(data))
+        //     .build();
+        //     try {
+		// 		client.send(request, HttpResponse.BodyHandlers.discarding());
+		// 	} catch (IOException | InterruptedException e) 
+		// 	{				
+		// 		System.out.println("Error POSTing results.\n");
+		// 		e.printStackTrace();
+		// 		System.exit(1);
+		// 	} 
 	}
+
 
 
 	/**

@@ -47,9 +47,7 @@ import java.util.Set;
 public class LocalInterface
 {
 
-	private static final String FMT_2 = "\t\t\t";
-	private static final String FMT_1 = "\n\t\t";
-
+	private static final String FMT = "\n\t\t%-60s %s";
 
 	/**
 	 * Collation POJO
@@ -127,7 +125,7 @@ public class LocalInterface
 				.append(DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now())).append("\n\nInterfaces:");
 
 		interfaces.forEach(i ->
-			sb.append(FMT_1).append(i.primary).append(FMT_2).append(i.secondary)
+			sb.append(String.format(FMT, i.primary, i.secondary))
 		);
 
 		sb.append("\n\nLoopback Addresses:");
@@ -135,7 +133,7 @@ public class LocalInterface
 		{
 			sb.append("\n\tIPv4");
 			ipV4Loopback.forEach(i ->
-				sb.append(FMT_1).append(i.primary).append(FMT_2).append(i.secondary)
+				sb.append(String.format(FMT, i.primary, i.secondary))
 			);
 		} // if
 
@@ -143,7 +141,7 @@ public class LocalInterface
 		{
 			sb.append("\n\tIPv6");
 			ipV6Loopback.forEach(i ->
-				sb.append(FMT_1).append(i.primary).append(FMT_2).append(i.secondary)
+				sb.append(String.format(FMT, i.primary, i.secondary))
 			);
 		} // if
 
@@ -151,7 +149,7 @@ public class LocalInterface
 		{
 			sb.append("\n\nLinkLocal Addresses IPv6:");
 			ipV6LinkLocal.forEach(i ->
-				sb.append(FMT_1).append(i.primary).append(FMT_2).append(i.secondary)
+				sb.append(String.format(FMT, i.primary, i.secondary))
 			);
 		} // if
 
@@ -159,7 +157,7 @@ public class LocalInterface
 		{
 			sb.append("\n\nIPv4 Addresses:");
 			ipV4Addresses.forEach( ( i, j ) ->
-				sb.append(FMT_1).append(j.primary).append(FMT_2).append(j.secondary)
+				sb.append(String.format(FMT, j.primary, j.secondary))
 			);
 		} // if
 
@@ -167,7 +165,7 @@ public class LocalInterface
 		{
 			sb.append("\n\nIPv6 Addresses:");
 			ipV6Addresses.forEach( ( i, j ) ->
-				sb.append(FMT_1).append(j.primary).append("\t\t").append(j.secondary)
+				sb.append(String.format(FMT, j.primary, j.secondary))
 			);
 		} // if
 

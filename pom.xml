@@ -2,7 +2,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-	<!-- Copyright 2020 technosf [https://github.com/technosf] Licensed under 
+	<!-- Copyright 2023 technosf [https://github.com/technosf] Licensed under 
 		the Apache License, Version 2.0 (the "License"); you may not use this file 
 		except in compliance with the License. You may obtain a copy of the License 
 		at http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable 
@@ -55,7 +55,7 @@ Licensed under GNU GENERAL PUBLIC LICENSE, Version 3.0 or greater</description>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <release>11</release>
+                    <release>8</release>
                 </configuration>
             </plugin>
 			<plugin>

@@ -5,10 +5,12 @@ Java CLI to test TCP reachability from local interfaces to a set of hosts over a
 ## Overview
 Run on a given host, this Java executable  _.jar_  identifies the local host name, and each of its the available network interfaces. Provided with a list of hosts to connect to, and a set or range of ports, it will attempt to connect with **TCP** from each local interface to each combination of external host and port in parallel a number of times.
 It collates, agregates and reports on connection:
+
 * success  
 * timeout  
 * refused  
 * unreachable 
+
 and timings for each.
 In this way each potential route from a local interface to a set of external hosts, say through a firewall, can be confirmed or diagnosed in as short a time as possible.
 
@@ -16,7 +18,7 @@ Output is formated for a spreadsheet as CSV by default, but can be JSON and also
 
 
 ## Package and Help
-_Connect-O-Matic_  is coded to be packaged as an executable  _.jar_  and run from the CLI. It's written with  _Maven_  packaging, because I find  _Maven_  to be easier than _gradle_ . Download the source and, to build and get help:
+_Connect-O-Matic_  is coded to be packaged as an executable  _.jar_  and run from the CLI. It's written for Java 8 and with  _Maven_  packaging (because I find  _Maven_  to be easier than _gradle_). Download the source and, to build and get help:
 
 ```console
 technosf@github:connectomatic~$ mvn package
@@ -24,7 +26,7 @@ technosf@github:connectomatic~$ java -jar target/connectomatic-1.2.0.jar -?
 
 Connect-O-Matic		Version: 1.2.0
 
-	Copyright 2023  technosf  [http://github.com/technosf]
+Copyright 2023  technosf  [http://github.com/technosf]
 
 Help:
 	-i	IPv - 4 and/or 6, defaults to 4 and 6 if absent
@@ -35,6 +37,7 @@ Help:
 	-j	Produce JSON output instead of CSV
 	-u	URI, POST JSON results to the provided URI
 	-q	Quiet mode, outputs result only, without preamble or summary
+	-d	Dry-run, run through resolving the targets without attempting any connects
 	-?	Produces this message
 
 Examples:
@@ -44,7 +47,8 @@ Examples:
 	java -jar connectomatic-*.*.*.jar -j -i 4,6 -p 22,80-90 -h github.com,www.github.com
 	java -jar connectomatic-*.*.*.jar -a 1 -u http://myobjectdb/index -i 6 -p 22,80-90 -h github.com,www.github.com
 
-Output by default is .csv, with header, or JSON via a switch. Fields are:
+Output by default is .csv with header - JSON via a switch.
+Fields are:
 	• IPv
 	• Local Interface
 	• Remote Address
@@ -82,7 +86,7 @@ Loopback Addresses:
 		ip6-localhost                   	0:0:0:0:0:0:0:1%lo
 
 LinkLocal Addresses IPv6:
-		fe80:0:0:::1a921%wlp1s1	fe80:0:0:::1a921%wlp1s1
+		fe80:0:0:::1a921%wlp1s1				fe80:0:0:::1a921%wlp1s1
 
 IPv4 Addresses:
 		192.168.0.99                    	192.168.0.99
@@ -116,9 +120,10 @@ Coded as Java 8 rather than 14+ to maximise build/use options. Hence no Java Rec
 ### 1.2.0
 Added switch to test connections to/from local interfaces if they are included in the hosts parameter. Otherwise they are now ignored, allowing the same host set to be used accross hosts without redundant results in the output.
 Added a switch for the number of connection attemps - defaults to 5.
-Added a switch to output results as JSON instead of CSV
+Added a switch to output results as JSON instead of CSV.
 Added a switch to POST results to an URI as a JSON payload, i.e. to get the results into an object DB.
-Added a switch to quiet version and summary output
+Added a switch to quiet version and summary output.
+Added a switch to dry-run, resolving endpoints but not testing/connecting to them.
 ### 1.1.1
 Support for port ranges in the input parameters. If a consecutive range of ports is to be tested, rather than having to list every port individually, they can be specified with a range: startport-endport
 ### 1.1.0
