@@ -19,12 +19,18 @@
 package com.github.technosf.connectomatic;
 
 import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
+import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.jar.Manifest;
+
 
 /**
  * ConnectOMatic
@@ -186,27 +192,19 @@ public class ConnectOMatic
 			data.append("]");
 		}
 
-		if ( clireader.getHttpUrlConnection() != null )
+		if ( clireader.getHttpUri() != null )
 		// POSTing result to HTTP end-point
 		{
-			HttpURLConnection hurl = clireader.getHttpUrlConnection();
-            try {
-				hurl.setRequestMethod("POST");
-				hurl.setDoOutput(true);
-				hurl.setRequestProperty("Content-Type", "application/json");
-				hurl.setRequestProperty("Accept", "application/json");
-				OutputStreamWriter osw = new OutputStreamWriter(hurl.getOutputStream());
-				osw.write(data.toString());
-				osw.flush();
-				osw.close();            
-			} catch (IOException e) 
-			{
-				System.out.println("Error POSTing results.\n");
-				e.printStackTrace();
-				System.exit(1);
-			}
+			postToUri( clireader.getHttpUri(), data.toString() );
 			return null;
 		}
+
+		// if ( clireader.getHttpUrlConnection() != null )
+		// // POSTing result to HTTP end-point
+		// {
+		// 	postToUrl( clireader.getHttpUrlConnection(), data.toString() );
+		// 	return null;
+		// }
 
 		// Not POSTing results to endpoint
 		StringBuilder header = new StringBuilder();
@@ -226,11 +224,49 @@ public class ConnectOMatic
 			.append("\n\n\n");
 		}
 
-
 		header.append(data);
 		
 		return header.toString();
 	} // main
+
+
+	protected static void postToUri( URI huri, String data ) 
+	{
+		HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(huri)
+            .POST(HttpRequest.BodyPublishers.ofString(data))
+            .build();
+            try {
+				client.send(request, HttpResponse.BodyHandlers.discarding());
+			} catch (IOException | InterruptedException e) 
+			{				
+				System.out.println("Error POSTing results.\n");
+				e.printStackTrace();
+				System.exit(1);
+			} 
+	}
+
+	protected static void postToUrl( HttpURLConnection hurl, String data ) 
+	{
+		try {
+			hurl.setRequestMethod("POST");
+			hurl.setDoOutput(true);
+			hurl.setRequestProperty("Content-Type", "application/json");
+			hurl.setRequestProperty("Accept", "application/json");
+
+			try(OutputStream os = hurl.getOutputStream()) 
+			{
+				byte[] input = data.getBytes(StandardCharsets.UTF_8);
+				os.write(input, 0, input.length);
+			}			        
+		} catch (IOException e) 
+		{
+			System.out.println("Error POSTing results.\n");
+			e.printStackTrace();
+			System.exit(1);
+		}
+	}
 
 
 	/**

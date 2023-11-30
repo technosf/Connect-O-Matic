@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+
 /**
  * Extract the local network interfaces
  * <p>
@@ -45,6 +46,10 @@ import java.util.Set;
  */
 public class LocalInterface
 {
+
+	private static final String FMT_2 = "\t\t\t";
+	private static final String FMT_1 = "\n\t\t";
+
 
 	/**
 	 * Collation POJO
@@ -67,10 +72,17 @@ public class LocalInterface
 
 
 		@Override
-		public int hashCode ()
+		public int hashCode() 
 		{
 			return primary.hashCode() + secondary.hashCode();
-		} // hashCode
+		}
+
+
+		@Override
+		public boolean equals(Object obj) 
+		{
+			return (obj != null && this.hashCode() == obj.hashCode());
+		}
 
 	};
 
@@ -115,54 +127,48 @@ public class LocalInterface
 				.append(DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now())).append("\n\nInterfaces:");
 
 		interfaces.forEach(i ->
-		{
-			sb.append("\n\t\t").append(i.primary).append("\t\t\t").append(i.secondary);
-		});
+			sb.append(FMT_1).append(i.primary).append(FMT_2).append(i.secondary)
+		);
 
 		sb.append("\n\nLoopback Addresses:");
 		if ( !ipV4Loopback.isEmpty() )
 		{
 			sb.append("\n\tIPv4");
 			ipV4Loopback.forEach(i ->
-			{
-				sb.append("\n\t\t").append(i.primary).append("\t\t\t").append(i.secondary);
-			});
+				sb.append(FMT_1).append(i.primary).append(FMT_2).append(i.secondary)
+			);
 		} // if
 
 		if ( !ipV6Loopback.isEmpty() )
 		{
 			sb.append("\n\tIPv6");
 			ipV6Loopback.forEach(i ->
-			{
-				sb.append("\n\t\t").append(i.primary).append("\t\t\t").append(i.secondary);
-			});
+				sb.append(FMT_1).append(i.primary).append(FMT_2).append(i.secondary)
+			);
 		} // if
 
 		if ( !ipV6LinkLocal.isEmpty() )
 		{
 			sb.append("\n\nLinkLocal Addresses IPv6:");
 			ipV6LinkLocal.forEach(i ->
-			{
-				sb.append("\n\t\t").append(i.primary).append("\t\t\t").append(i.secondary);
-			});
+				sb.append(FMT_1).append(i.primary).append(FMT_2).append(i.secondary)
+			);
 		} // if
 
 		if ( !ipV4Addresses.isEmpty() )
 		{
 			sb.append("\n\nIPv4 Addresses:");
 			ipV4Addresses.forEach( ( i, j ) ->
-			{
-				sb.append("\n\t\t").append(j.primary).append("\t\t\t").append(j.secondary);
-			});
+				sb.append(FMT_1).append(j.primary).append(FMT_2).append(j.secondary)
+			);
 		} // if
 
 		if ( !ipV6Addresses.isEmpty() )
 		{
 			sb.append("\n\nIPv6 Addresses:");
 			ipV6Addresses.forEach( ( i, j ) ->
-			{
-				sb.append("\n\t\t").append(j.primary).append("\t\t").append(j.secondary);
-			});
+				sb.append(FMT_1).append(j.primary).append("\t\t").append(j.secondary)
+			);
 		} // if
 
 		digest	= sb.toString();
@@ -208,51 +214,64 @@ public class LocalInterface
 	{
 		for ( NetworkInterface nif : Collections.list(NetworkInterface.getNetworkInterfaces()) )
 		{
+			if ( nif == null ) continue;
+
 			interfaces.add(
 					new Tuple<>(String.format("%-32s", nif.getDisplayName()), stringMAC(nif.getHardwareAddress()))
 			);
 
 			for ( InterfaceAddress ifAddr : nif.getInterfaceAddresses() )
+			// collate each individual address on this Interface
 			{
-				InetAddress				ia		= ifAddr.getAddress();
-				localAddresses.add( ia.getHostAddress().split("%")[0] );
-				Tuple< String, String >	addr	= new Tuple<>(
-						String.format("%-32s", ia.getHostName()), ia.getHostAddress().split("%")[0]
-				);
-
-				if ( ia instanceof Inet4Address )
-				{
-					if ( ia.isLoopbackAddress() )
-					{
-						ipV4Loopback.add(addr);
-					} // if
-					else
-					{
-						ipV4Addresses.put((Inet4Address) ia, addr);
-					} // else
-				} // if
-				else if ( ia instanceof Inet6Address )
-				{
-					if ( ia.isLoopbackAddress() )
-					{
-						ipV6Loopback.add(addr);
-					} // if
-					else if ( ia.isLinkLocalAddress() )
-					{
-						ipV6LinkLocal.add(addr);
-					} // else if
-					else
-					{
-						ipV6Addresses.put((Inet6Address) ia, addr);
-					} // else
-				} // else if
-				else
-				{
-					System.err.println("Bad Address:\t" + ia.getAddress());
-				} // else
+				if ( ifAddr != null ) collateInterfaceAddress(ifAddr);
 			} // for
 		} // for
 	} // collateLocalInterfaces
+
+
+	/**
+	 * Collates individual addresses
+	 * 
+	 * @param ifAddr
+	 */
+	private void collateInterfaceAddress(InterfaceAddress ifAddr) 
+	{
+		InetAddress				ia		= ifAddr.getAddress();
+		localAddresses.add( ia.getHostAddress().split("%")[0] );
+		Tuple< String, String >	addr	
+			= new Tuple<>(String.format("%-32s", ia.getHostName()), ia.getHostAddress().split("%")[0]);
+
+		if ( ia instanceof Inet4Address )
+		{
+			if ( ia.isLoopbackAddress() )
+			{
+				ipV4Loopback.add(addr);
+			} // if
+			else
+			{
+				ipV4Addresses.put((Inet4Address) ia, addr);
+			} // else
+		} // if
+		else if ( ia instanceof Inet6Address )
+		{
+			if ( ia.isLoopbackAddress() )
+			{
+				ipV6Loopback.add(addr);
+			} // if
+			else if ( ia.isLinkLocalAddress() )
+			{
+				ipV6LinkLocal.add(addr);
+			} // else if
+			else
+			{
+				ipV6Addresses.put((Inet6Address) ia, addr);
+			} // else
+		} // else if
+		else
+		{
+			System.err.println("Bad Address:\t" + ia.getAddress());
+		} // else
+	}
 
 
 	/**

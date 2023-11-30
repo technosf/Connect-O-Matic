@@ -28,7 +28,8 @@ public class ConnectionTaskTest
 
 
 	@BeforeClass
-	public void beforeClass () throws UnknownHostException, Exception
+	public void beforeClass () 
+		throws UnknownHostException, Exception
 	{
 		ts4	= new TimeServer(InetAddress.getByName("127.0.0.1"), t4p, 500);
 		ts6	= new TimeServer(InetAddress.getByName("::1"), t6p, 500);
@@ -50,7 +51,8 @@ public class ConnectionTaskTest
 	{
 			"init"
 	} )
-	public void submitTestInet4AddressInet4Addressintint () throws UnknownHostException
+	public void submitTestInet4AddressInet4Addressintint () 
+		throws UnknownHostException
 	{
 		Inet4Address local = (Inet4Address) Inet4Address.getByName("localhost");
 		ConnectionTask.submit( false, local, local, t4p, 5);
@@ -61,7 +63,8 @@ public class ConnectionTaskTest
 	{
 			"init"
 	} )
-	public void submitTestInet6AddressInet6Addressintint () throws UnknownHostException
+	public void submitTestInet6AddressInet6Addressintint () 
+		throws UnknownHostException
 	{
 		Inet6Address local = (Inet6Address) Inet6Address.getByName("::1");
 		ConnectionTask.submit( false, local, local, t6p, 5);

@@ -47,9 +47,9 @@ public enum ArgTypeEnum
 	, NOT_A_FLAG ( null );
 
 
-	private final static String						FLAG_PREFIX	= "-";	// Argument flag prefix
+	private static final String						FLAG_PREFIX	= "-";	// Argument flag prefix
 
-	private final static Map< String, ArgTypeEnum >	FLAG_INDEX;			// Store for an index of flags
+	private static final Map< String, ArgTypeEnum >	FLAG_INDEX;			// Store for an index of flags
 
 	private final boolean							IS_A_FLAG;			// Is flagged as an argument
 	private final String							FLAG;				// The flag

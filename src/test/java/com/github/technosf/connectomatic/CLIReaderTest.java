@@ -427,13 +427,21 @@ public class CLIReaderTest
 		assertEquals(clireader.getIpV4Addresses().size(), ipv4s, testno+": IPv4 Address count mismatch");
 		assertEquals(clireader.getIpV6Addresses().size(), ipv6s, testno+": IPv6 Address count mismatch");
 		assertEquals(clireader.getAttempts(), attempts, testno+": Attempts mismatch");
+		// if ( url == null )
+		// {
+		// 	assertEquals( clireader.getHttpUrlConnection(), null, testno+": URL mismatch");
+		// }
+		// else
+		// {
+		// 	assertEquals( clireader.getHttpUrlConnection().getURL(), url , testno+": URL mismatch");
+		// }
 		if ( url == null )
 		{
-			assertEquals( clireader.getHttpUrlConnection(), null, testno+": URL mismatch");
+			assertEquals( clireader.getHttpUri(), null, testno+": URL mismatch");
 		}
 		else
 		{
-			assertEquals( clireader.getHttpUrlConnection().getURL(), url , testno+": URL mismatch");
+			assertEquals( clireader.getHttpUri().toURL(), url , testno+": URL mismatch");
 		}
 	}
 }

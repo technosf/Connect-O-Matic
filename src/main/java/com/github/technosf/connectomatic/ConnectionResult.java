@@ -23,7 +23,6 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.jdt.annotation.NonNull;
 
 /**
  * Connection Result POJO
@@ -74,7 +73,7 @@ public class ConnectionResult
 	 * @param pingcount
 	 *                          times connection attempts are to made, used to preallocate result array
 	 */
-	ConnectionResult ( boolean json, @NonNull String ipv, @NonNull InetAddress localaddress, @NonNull InetAddress remoteaddress, int port)//, int pingcount )
+	ConnectionResult ( boolean json, String ipv, InetAddress localaddress, InetAddress remoteaddress, int port)//, int pingcount )
 	{
 		this.json 		= json;
 		connects_millis	= new ArrayList< >();

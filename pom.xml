@@ -55,7 +55,7 @@ Licensed under GNU GENERAL PUBLIC LICENSE, Version 3.0 or greater</description>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <release>8</release>
+                    <release>11</release>
                 </configuration>
             </plugin>
 			<plugin>
@@ -85,11 +85,6 @@ Licensed under GNU GENERAL PUBLIC LICENSE, Version 3.0 or greater</description>
 
 	<dependencies>
 		<dependency>
-			<groupId>org.eclipse.jdt</groupId>
-			<artifactId>org.eclipse.jdt.annotation</artifactId>
-			<version>2.2.700</version>
-		</dependency>
-		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
 			<version>7.8.0</version>
@@ -106,6 +101,12 @@ Licensed under GNU GENERAL PUBLIC LICENSE, Version 3.0 or greater</description>
 			<artifactId>slf4j-simple</artifactId>
 			<version>${slf4j-version}</version> 
 			<scope>test</scope>
-		</dependency>
+		</dependency>        
+		<dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>mockwebserver</artifactId>
+            <version>4.12.0</version>
+            <scope>test</scope>
+        </dependency>
 	</dependencies>
 </project>

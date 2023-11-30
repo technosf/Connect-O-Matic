@@ -34,6 +34,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Executors;
 
+
 /**
  * A runnable task that makes a number of connection attempts from a given interface to a given address and
  * port number
@@ -69,7 +70,7 @@ public class ConnectionTask implements Callable< ConnectionResult >
 	 * Private default constructor.
 	 */
 	private ConnectionTask ()
-	{};
+	{}
 
 
 	/**

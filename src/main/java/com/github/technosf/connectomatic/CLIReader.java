@@ -19,11 +19,12 @@
 package com.github.technosf.connectomatic;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -49,6 +50,7 @@ import java.util.regex.Pattern;
 public class CLIReader
 {
 
+	private static final String FMT_ERROR = "\'\n\tError:";
 	static final int CONNECTS_DEFAULT = 5;
 	private static final int CONNECTS_MAX = 64;
 	private static final int PORT_MAX = 65535;
@@ -82,7 +84,7 @@ public class CLIReader
 	private Set< String >				badHosts		= new HashSet<>();
 	private Set< Integer >				ports			= new HashSet<>();
 	private int							attempts		= CONNECTS_DEFAULT;
-	private HttpURLConnection			httpUrlConnection;
+	private URI							httpUri;
 
 	private StringBuilder				feedback		= new StringBuilder();
 
@@ -101,108 +103,7 @@ public class CLIReader
 	 */
 	CLIReader ( Set< String > localAddresses, String[] args )
 	{
-		ArgTypeEnum currentState = ArgTypeEnum.NOT_A_FLAG; // The current state arg type
-		
-		boolean argReqParams = false;
-
-		for ( String arg : args )
-		{
-			ArgTypeEnum thisArgType = ArgTypeEnum.getArgType(arg);
-
-			if ( ArgTypeEnum.HELP == thisArgType )
-			/*
-			 * If help was requested provide the legend as feedback and exit
-			 */
-			{
-				help = true;
-				feedback.setLength(0);
-				feedback.append(HELP_LEGEND);
-				ipV4Addresses.clear();
-				ipV6Addresses.clear();
-				badHosts.clear();
-				ports.clear();
-				return;
-			}
-
-			if ( thisArgType.isFlag() )
-			/*
-			 * This arg is a valid flag - reset the current state and break to parse the
-			 * next arg
-			 */
-			{
-				if ( usedFlags.contains(thisArgType) ) // Found a repeating flag
-					feedback.append("Duplicate flag \'").append(arg).append("\'\n");
-
-				if ( argReqParams )	// Require param flag found for last arg type
-					feedback.append("Missing param for flag \'").append(currentState.getFlag()).append("\'\n");
-
-				usedFlags.add(thisArgType);
-				currentState = thisArgType;
-				argReqParams = currentState.reqParm();
-				
-				switch ( currentState )
-				/* Set any boolean flgs */
-				{
-					case LOCAL:
-						local	= true;
-						continue;
-					case JSON:
-						json 	= true;
-						continue;
-					case QUIET:
-						quiet	= true;
-						continue;
-					case DRY:
-						dry	= true;
-						continue;
-					default:
-						continue;
-				} // switch
-			} // if
-
-
-			if ( ArgTypeEnum.NOT_A_FLAG == currentState && !thisArgType.isFlag() )
-			/*
-			 * The current state is unset, so the first flag has not yet been found,
-			 * and this arg is not a flag either (See prior clause too), so
-			 * error condition.
-			 */
-			{
-				feedback.append("Expected an argument flag, but got: \'").append(arg).append("\'\n");
-				continue;
-			} // if
-
-			//Process params
-			argReqParams = false;
-			
-			/*
-			 * Parse the set of args globbed in this string.
-			 */
-			for ( String splitarg : arg.trim().split(",") )
-			{
-				switch ( currentState )
-				{
-					case IPV:
-						processIPV(splitarg);
-						break;
-					case PORT:
-						processPort(splitarg);
-						break;
-					case HOST:
-						processHost(splitarg);
-						break;
-					case ATTEMPTS:
-						processAttempts(splitarg);
-						break;
-					case URI:
-						processUrl(splitarg);
-						break;
-					default:
-						feedback.append("Unknown argument: \'").append(splitarg).append("\'\n");
-				} // switch
-			} // for
-		} // for ( String arg : args )
-
+		processArgs( args );
 
 		/*
 		 * Check CLI validity
@@ -406,16 +307,125 @@ public class CLIReader
 
 	
 	/**
-	 * Get the Http URL Connection to POST JSON results to
+	 * Get the Http URI to POST JSON results to
 	 * Return NULL is no URL was provided in the parameters.
 	 * 
-	 * @return the Http URL Connection, or NULL 
+	 * @return the Http URI, or NULL 
 	 */
-	public HttpURLConnection getHttpUrlConnection ()
+	public URI getHttpUri ()
 	{
-		return httpUrlConnection;
-	} // getUri
+		return httpUri;
+	} // getHttpUri
 
+	//---------------------------------------------------------------------
+
+	/**
+	 * 
+	 * @param arg
+	 */
+	private void processArgs( String[] args )
+	{
+		ArgTypeEnum currentState = ArgTypeEnum.NOT_A_FLAG; // The current state arg type
+		boolean argReqParams = false;
+
+		for ( String arg : args )
+		{
+			ArgTypeEnum thisArgType = ArgTypeEnum.getArgType(arg);
+
+			if ( ArgTypeEnum.HELP == thisArgType )
+			/*
+				* If help was requested provide the legend as feedback and exit
+				*/
+			{
+				help = true;
+				feedback.setLength(0);
+				feedback.append(HELP_LEGEND);
+				ipV4Addresses.clear();
+				ipV6Addresses.clear();
+				badHosts.clear();
+				ports.clear();
+				return;
+			}
+
+			if ( thisArgType.isFlag() )
+			/*
+				* This arg is a valid flag - reset the current state and break to parse the
+				* next arg
+				*/
+			{
+				if ( usedFlags.contains(thisArgType) ) // Found a repeating flag
+					feedback.append("Duplicate flag \'").append(arg).append("\'\n");
+
+				if ( argReqParams )	// Require param flag found for last arg type
+					feedback.append("Missing param for flag \'").append(currentState.getFlag()).append("\'\n");
+
+				usedFlags.add(thisArgType);
+				currentState = thisArgType;
+				argReqParams = currentState.reqParm();
+				
+				switch ( currentState )
+				/* Set any boolean flgs */
+				{
+					case LOCAL:
+						local	= true;
+						continue;
+					case JSON:
+						json 	= true;
+						continue;
+					case QUIET:
+						quiet	= true;
+						continue;
+					case DRY:
+						dry	= true;
+						continue;
+					default:
+						continue;
+				} // switch
+			} // if
+
+
+			if ( ArgTypeEnum.NOT_A_FLAG == currentState && !thisArgType.isFlag() )
+			/*
+				* The current state is unset, so the first flag has not yet been found,
+				* and this arg is not a flag either (See prior clause too), so
+				* error condition.
+				*/
+			{
+				feedback.append("Expected an argument flag, but got: \'").append(arg).append("\'\n");
+				continue;
+			} // if
+
+			//Process params
+			argReqParams = false;
+			
+			/*
+				* Parse the set of args globbed in this string.
+				*/
+			for ( String splitarg : arg.trim().split(",") )
+			{
+				switch ( currentState )
+				{
+					case IPV:
+						processIPV(splitarg);
+						break;
+					case PORT:
+						processPort(splitarg);
+						break;
+					case HOST:
+						processHost(splitarg);
+						break;
+					case ATTEMPTS:
+						processAttempts(splitarg);
+						break;
+					case URI:
+						processUrl(splitarg);
+						break;
+					default:
+						feedback.append("Unknown argument: \'").append(splitarg).append("\'\n");
+				} // switch
+			} // for
+		}
+	}
 
 	/**
 	 * Processes IPv flag arguments
@@ -519,7 +529,7 @@ public class CLIReader
 		catch ( UnknownHostException e )
 		{
 			badHosts.add(splitarg);
-			feedback.append("Error on Host/Address: \'").append(splitarg).append("\'\n\tError:").append(e.getMessage())
+			feedback.append("Error on Host/Address: \'").append(splitarg).append(FMT_ERROR).append(e.getMessage())
 					.append("\'\n");
 		} // catch
 	} // processHost
@@ -528,17 +538,23 @@ public class CLIReader
 	private void processUrl(String splitarg) 
 	{
 		try {
-			URL url = new URL(splitarg);
-			httpUrlConnection =  (HttpURLConnection) url.openConnection();
-			
+			URL httpUrl = new URL(splitarg);
+			httpUri = httpUrl.toURI();
+			httpUrl.openConnection();			
 		} 
 		catch (MalformedURLException e) 
 		{			
-			feedback.append("Error with URL format: \'").append(splitarg).append("\'\n\tError:").append(e.getMessage())
+			feedback.append("Error with URL format: \'").append(splitarg).append(FMT_ERROR).append(e.getMessage())
 					.append("\'\n");
-		} catch (IOException e) 
+		} 
+		catch (URISyntaxException e) 
 		{
-			feedback.append("Error with URL endpoint: \'").append(splitarg).append("\'\n\tError:").append(e.getMessage())
+			feedback.append("Error with URL syntax: \'").append(splitarg).append(FMT_ERROR).append(e.getMessage())
+					.append("\'\n");
+		} 
+		catch (IOException e) 
+		{
+			feedback.append("Error with URL endpoint: \'").append(splitarg).append(FMT_ERROR).append(e.getMessage())
 					.append("\'\n");
 		}
     } // processUri
@@ -559,7 +575,10 @@ public class CLIReader
 			}
 		}
 		catch (NumberFormatException e)
-		{}
+		{
+			//
+		}
+		
 		feedback.append("Error on Attempts (requires a integer of 1 to 50): \'").append(splitarg).append("\'\n");
 	} // processAttempts
 
