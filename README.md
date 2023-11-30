@@ -136,7 +136,7 @@ Support for port ranges in the input parameters. If a consecutive range of ports
 * Corrected an error in the connection time math.
 
 ### 1.0.1
-_Finessed Initial Release_\ 
+_Finessed Initial Release_\
 Basic discovery of local interfaces and connection testing from a given local interface to remote host and port, providing connection results and average connection timings in .csv format.
 ### 1.0.0
 _Initial Release_\
