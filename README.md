@@ -86,7 +86,7 @@ Loopback Addresses:
 		ip6-localhost                   	0:0:0:0:0:0:0:1%lo
 
 LinkLocal Addresses IPv6:
-		fe80:0:0:::1a921%wlp1s1				fe80:0:0:::1a921%wlp1s1
+		fe80:0:0:::1a921%wlp1s1			fe80:0:0:::1a921%wlp1s1
 
 IPv4 Addresses:
 		192.168.0.99                    	192.168.0.99
@@ -118,23 +118,28 @@ Coded as Java 8 rather than 14+ to maximise build/use options. Hence no Java Rec
 
 ## History
 ### 1.2.0
-Added switch to test connections to/from local interfaces if they are included in the hosts parameter. Otherwise they are now ignored, allowing the same host set to be used accross hosts without redundant results in the output.
-Added a switch for the number of connection attemps - defaults to 5.
-Added a switch to output results as JSON instead of CSV.
-Added a switch to POST results to an URI as a JSON payload, i.e. to get the results into an object DB.
-Added a switch to quiet version and summary output.
-Added a switch to dry-run, resolving endpoints but not testing/connecting to them.
+Added switches to:
+
+* test connections to/from local interfaces if they are included in the hosts parameter. Otherwise they are now ignored, allowing the same host set to be used accross hosts without redundant results in the output.
+* set the number of connection attemps - defaults to 5.
+* output results as JSON instead of CSV.
+* POST results to an URI as a JSON payload, i.e. to get the results into an object DB.
+* quiet version and summary output.
+* dry-run, resolving endpoints but not testing/connecting to them.
+
 ### 1.1.1
-Support for port ranges in the input parameters. If a consecutive range of ports is to be tested, rather than having to list every port individually, they can be specified with a range: startport-endport
+Support for port ranges in the input parameters. If a consecutive range of ports is to be tested, rather than having to list every port individually, they can be specified with a range: startport-endport.
+
 ### 1.1.0
-Added summary of connection tries to the result header.
-Added min and max connection times to .CSV
-Corrected an error in the connection time math.
+* Added summary of connection tries to the result header.
+* Added min and max connection times to .CSV
+* Corrected an error in the connection time math.
+
 ### 1.0.1
-_Finessed Initial Release_
-Basic discovery of local interfaces and connection testing from a given local interface to remote host and port, providing connection results and average connection timings in .csv format
+_Finessed Initial Release_\ 
+Basic discovery of local interfaces and connection testing from a given local interface to remote host and port, providing connection results and average connection timings in .csv format.
 ### 1.0.0
-_Initial Release_
+_Initial Release_\
 Basic discovery of local interfaces and connection testing from a given local interface to remote host and port, providing connection results and average connection timings.
 
 
